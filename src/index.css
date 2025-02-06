@@ -1,0 +1,366 @@
+/* @import "tailwindcss"; */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary-color: #4a90e2;
+  --secondary-color: #50c878;
+  --background-color: #f5f7fa;
+  --text-color: #333333;
+  --light-gray: #e0e0e0;
+  --white: #ffffff;
+  --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --transition: all 0.3s ease;
+}
+
+body {
+  font-family: "Roboto", sans-serif;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  line-height: 1.6;
+  margin: 0;
+  padding: 0;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin-bottom: 1rem;
+}
+
+button {
+  cursor: pointer;
+  background-color: var(--primary-color);
+  color: var(--white);
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  transition: var(--transition);
+}
+
+button:hover {
+  background-color: darken(var(--primary-color), 10%);
+}
+
+input,
+select {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 1rem;
+  border: 1px solid var(--light-gray);
+  border-radius: 5px;
+  font-size: 1rem;
+}
+
+label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+}
+
+/* App styles */
+.app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.app-main-content {
+  display: flex;
+  flex: 1;
+}
+
+.app-page-content {
+  flex: 1;
+  padding: 2rem;
+  overflow-y: auto;
+}
+
+/* Sidebar styles */
+.sidebar {
+  width: 250px;
+  background-color: var(--white);
+  box-shadow: var(--shadow);
+  padding: 2rem 0;
+}
+
+.sidebar-nav ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sidebar-nav li {
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.sidebar-nav li:hover {
+  background-color: var(--light-gray);
+}
+
+.sidebar-nav-active {
+  background-color: var(--primary-color);
+  color: var(--white);
+}
+
+/* Dashboard styles */
+.dashboard {
+  display: grid;
+  gap: 2rem;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+.dashboard-widget {
+  background-color: var(--white);
+  border-radius: 10px;
+  padding: 1.5rem;
+  box-shadow: var(--shadow);
+}
+
+.dashboard-widget h2 {
+  margin-top: 0;
+  color: var(--primary-color);
+}
+
+.dashboard-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboard-form button {
+  align-self: flex-start;
+  margin-top: 1rem;
+}
+
+/* Health Tracking styles */
+.health-tracking {
+  background-color: var(--white);
+  border-radius: 10px;
+  padding: 2rem;
+  box-shadow: var(--shadow);
+}
+
+.health-tracking-form {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.health-tracking-form button {
+  grid-column: 1 / -1;
+  justify-self: start;
+}
+
+/* Medication Tracker styles */
+.medication-tracker {
+  background-color: var(--white);
+  border-radius: 10px;
+  padding: 2rem;
+  box-shadow: var(--shadow);
+}
+
+.medication-tracker-form {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  margin-bottom: 2rem;
+}
+
+.medication-tracker-form button {
+  grid-column: 1 / -1;
+  justify-self: start;
+}
+
+.medication-list {
+  background-color: var(--background-color);
+  border-radius: 5px;
+  padding: 1rem;
+}
+
+.medication-list ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.medication-list li {
+  background-color: var(--white);
+  margin-bottom: 0.5rem;
+  padding: 0.5rem;
+  border-radius: 5px;
+  box-shadow: var(--shadow);
+}
+
+/* Fitness Graph styles */
+.fitness-graph {
+  background-color: var(--white);
+  border-radius: 10px;
+  padding: 2rem;
+  box-shadow: var(--shadow);
+}
+
+.graph-placeholder {
+  background-color: var(--background-color);
+  border-radius: 5px;
+  padding: 2rem;
+  text-align: center;
+  color: var(--text-color);
+}
+
+/* Appointment Booking styles */
+.appointment-booking {
+  background-color: var(--white);
+  border-radius: 10px;
+  padding: 2rem;
+  box-shadow: var(--shadow);
+}
+
+.appointment-booking-form {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.appointment-booking-form button {
+  grid-column: 1 / -1;
+  justify-self: start;
+}
+
+/* Bed Booking styles */
+.bed-booking {
+  background-color: var(--white);
+  border-radius: 10px;
+  padding: 2rem;
+  box-shadow: var(--shadow);
+}
+
+.bed-booking-form {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.bed-booking-form button {
+  grid-column: 1 / -1;
+  justify-self: start;
+}
+
+/* Header styles */
+.app-header {
+  background-color: var(--primary-color);
+  color: var(--white);
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.app-header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.app-header-nav ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+}
+
+.app-header-nav li {
+  margin-left: 1rem;
+}
+
+.app-header-nav a {
+  color: var(--white);
+  text-decoration: none;
+  transition: var(--transition);
+}
+
+.app-header-nav a:hover {
+  opacity: 0.8;
+}
+
+/* Footer styles */
+.app-footer {
+  background-color: var(--text-color);
+  color: var(--white);
+  text-align: center;
+  padding: 1rem;
+  margin-top: auto;
+}
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+    --primary: 240 5.9% 10%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 240 10% 3.9%;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+    --radius: 0.5rem;
+  }
+  .dark {
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 240 5.9% 10%;
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 240 4.9% 83.9%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+  }
+}
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
