@@ -8,8 +8,11 @@ import MedicationTracker from "./components/MedicationTracker"
 import FitnessGraph from "./components/FitnessGraph"
 import AppointmentBooking from "./components/AppointmentBooking"
 import BedBooking from "./components/BedBooking"
+import HospitalInterface from "./components/HospitalInterface"
+import SignIn from "./components/SignIn"
 import Header from "./components/Header"
 import Footer from "./components/Footer"
+import {Routes, Route} from "react-router-dom"
 
 function App() {
   const [currentPage, setCurrentPage] = useState("dashboard")
@@ -40,7 +43,19 @@ function App() {
         <Sidebar setCurrentPage={setCurrentPage} />
         <div className="app-page-content">{renderPage()}</div>
       </div>
+      <HospitalInterface />
       <Footer />
+
+
+      <Routes>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/healthTracking" element={<HealthTracking />} />
+        <Route path="/medicationTracker" element={<MedicationTracker />} />
+        <Route path="/fitnessGraph" element={<FitnessGraph />} />
+        <Route path="/appointmentBooking" element={<AppointmentBooking />} />
+        <Route path="/bedBooking" element={<BedBooking />} />
+        <Route path="/signin" element={<SignIn />} />
+      </Routes>
     </div>
   )
 }
