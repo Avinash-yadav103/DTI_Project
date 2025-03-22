@@ -3,7 +3,8 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { LayoutDashboard, Calendar, Activity, FileText, User } from "lucide-react"
+// import { VaccinationPage } from "@/components/vaccination"
+import { LayoutDashboard, Calendar, Activity, FileText, User, Syringe } from "lucide-react"
 
 const sidebarItems = [
   {
@@ -31,6 +32,11 @@ const sidebarItems = [
     href: "/profile",
     icon: User,
   },
+  {
+    title: "Vaccination",
+    href: "/vaccination",
+    icon: Syringe,
+  },
 ]
 
 export default function Sidebar() {
@@ -56,4 +62,3 @@ export default function Sidebar() {
     </div>
   )
 }
-
