@@ -2,12 +2,13 @@
 
 import { useEffect, useState } from "react"
 import { Card, CardContent, CardDescription, CardTitle } from "@/components/ui/card"
-import { Calendar, Upload, UserRound, CheckCircle, Send, Eye, Trash2 } from "lucide-react"
+import { Calendar, Upload, UserRound, CheckCircle, Send, Eye, Trash2, PillIcon, Check } from "lucide-react"
 import { PatientInfo } from "@/components/patient-info"
 import { UpcomingAppointments } from "@/components/upcoming-appointments"
 import { GenerateReport } from "@/components/generate-report"
 import { HealthMetricsPreview } from "@/components/health-metrics-preview"
 import { YourPhysicians } from "@/components/your-physicians"
+import { MedicalTimeline } from "@/components/medical-history/medical-timeline"
 
 
 type UploadedFile = {

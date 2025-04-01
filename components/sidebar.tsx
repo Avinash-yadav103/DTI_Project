@@ -4,7 +4,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 // import { VaccinationPage } from "@/components/vaccination"
-import { LayoutDashboard, Calendar, Activity, FileText, User, Syringe } from "lucide-react"
+import { LayoutDashboard, Calendar, Activity, FileText, User, Syringe, PillIcon, } from "lucide-react"
 
 const sidebarItems = [
   {
@@ -21,6 +21,11 @@ const sidebarItems = [
     title: "Health Metrics",
     href: "/health-metrics",
     icon: Activity,
+  },
+  {
+    title: "Medications",
+    href: "/medications",
+    icon: PillIcon,
   },
   {
     title: "Reports",
