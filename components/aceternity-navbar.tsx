@@ -13,7 +13,7 @@ export function AceternityNavbar() {
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-2 md:px-8">
         <Link href="/" className="flex items-center gap-2">
           <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-sky-500 to-blue-600">
-            MediChain
+            CareFolio
           </span>
         </Link>
 

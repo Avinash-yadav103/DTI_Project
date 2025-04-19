@@ -53,7 +53,7 @@ export const FloatingNavbar = ({ navItems, className }: FloatingNavbarProps) => 
             MC
           </div>
           <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-sky-500 to-blue-600">
-            Charak
+            CareFolio
           </span>
         </Link>
 

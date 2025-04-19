@@ -12,20 +12,28 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
-# Initialize logging
-logging.basicConfig(level=logging.DEBUG)
+# Validate required environment variables
+required_env_vars = ['FLASK_SECRET_KEY', 'API_KEY', 'API_SECRET', 'ACCESS_TOKEN']
+missing_vars = [var for var in required_env_vars if not os.getenv(var)]
+if missing_vars:
+    logging.warning(f"Missing required environment variables: {', '.join(missing_vars)}")
 
 # Initialize Firebase Admin SDK
+firebase_credentials_path = './project-charak-firebase-adminsdk-fbsvc-d9521be673.json'
+if not os.path.exists(firebase_credentials_path):
+    logging.error(f"Firebase credentials file not found: {firebase_credentials_path}")
+    raise FileNotFoundError(f"Firebase credentials file not found: {firebase_credentials_path}")
+
 try:
-    cred = credentials.Certificate('./project-charak-firebase-adminsdk-fbsvc-d9521be673.json')
+    cred = credentials.Certificate(firebase_credentials_path)
     firebase_admin.initialize_app(cred)
     db = firestore.client()
-    print("Firebase initialized successfully")
+    logging.info("Firebase initialized successfully")
 except Exception as e:
-    print(f"Error initializing Firebase: {str(e)}")
+    logging.error(f"Error initializing Firebase: {str(e)}")
     raise
 
-app = Flask(_name_)
+app = Flask(__name__)
 app.secret_key = os.getenv('FLASK_SECRET_KEY', os.urandom(24))
 CORS(app)  # Enable CORS for all routes
 
@@ -289,9 +297,8 @@ def logout():
     session.clear()
     return jsonify({'success': True, 'message': 'Logged out successfully'}), 200
 
-if _name_ == '_main_':
+if __name__ == '__main__':
     try:
         app.run(host='0.0.0.0', port=4505, debug=True)
     except Exception as e:
         print('Failed to start the server:', str(e))
-backend

@@ -676,7 +676,19 @@ export default function LoginPage() {
       <Button 
         variant="outline" 
         className="w-full" 
-        onClick={userType === "patient" && verificationMethod === "aadhar" ? handlePatientLogin : handleOtherUserLogin} 
+        onClick={() => {
+          if (userType === "patient") {
+            login(mockUsers.patient);
+          } else if (userType === "doctor") {
+            login(mockUsers.doctor);
+          } else if (userType === "government") {
+            login(mockUsers.government);
+          } else if (userType === "student") {
+            login(mockUsers.student);
+          }
+          toast.success("Direct login successful!");
+          router.push(redirect);
+        }} 
         disabled={isLoading}
       >
         {isLoading ? (

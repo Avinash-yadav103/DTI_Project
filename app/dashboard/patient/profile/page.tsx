@@ -16,6 +16,7 @@ import {
   Droplet,
   Save,
   Camera,
+  Syringe,
 } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -187,9 +188,9 @@ export default function PatientProfilePage() {
       icon: <Calendar className="h-4 w-4" />,
     },
     {
-      title: "Access Logs",
-      href: "/dashboard/patient/logs",
-      icon: <Clock className="h-4 w-4" />,
+      title: "Vaccinations",
+      href: "/dashboard/patient/vaccinations",
+      icon: <Syringe className="h-4 w-4" />,
     },
     {
       title: "Profile",
@@ -236,10 +237,7 @@ export default function PatientProfilePage() {
               <CardContent className="flex flex-col items-center pt-4">
                 <div className="relative">
                   <div className="h-32 w-32 rounded-full bg-sky-100 flex items-center justify-center text-sky-600 text-4xl font-bold">
-                    {profile.name
-                      .split(" ")
-                      .map((n) => n[0])
-                      .join("")}
+                    CareFolio
                   </div>
                   <Button
                     variant="outline"
