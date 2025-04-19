@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Patient Portal</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 500px;
+      margin: auto;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+    .container {
+      background-color: white;
+      margin-bottom: 30px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    input, textarea, button {
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0;
+      box-sizing: border-box;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    button {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    .error {
+      color: #ff0000;
+      margin: 10px 0;
+    }
+    .success {
+      color: #4CAF50;
+      margin: 10px 0;
+    }
+    #loginResult {
+      margin-top: 15px;
+      padding: 10px;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <h2>👤 Register Patient</h2>
+  <div class="container">
+    <input type="text" id="regPatientID" placeholder="Patient ID (Aadhar Number)" required>
+    <input type="text" id="regName" placeholder="Full Name" required>
+    <input type="number" id="regAge" placeholder="Age" required>
+    <input type="tel" id="regContact" placeholder="Contact Number" required>
+    <input type="password" id="regPassword" placeholder="Password" required>
+    <textarea id="regMedicalInfo" placeholder="Medical Info (JSON Format)" rows="4">{
+  "bloodGroup": "",
+  "allergies": [],
+  "chronicConditions": []
+}</textarea>
+    <div id="regStatus"></div>
+    <button onclick="register()">Register</button>
+  </div>
+
+  <h2>🔐 Login</h2>
+  <div class="container">
+    <input type="text" id="loginPatientID" placeholder="Patient ID">
+    <input type="password" id="loginPassword" placeholder="Password">
+    <div id="loginStatus"></div>
+    <button onclick="login()">Login</button>
+    <div id="loginResult"></div>
+  </div>
+
+  <script>
+    const API_BASE = 'http://10.12.16.45:8881/api';
+
+    async function register() {
+      const regStatus = document.getElementById('regStatus');
+      try {
+        const data = {
+          patientID: document.getElementById('regPatientID').value,
+          name: document.getElementById('regName').value,
+          age: document.getElementById('regAge').value,
+          contact: document.getElementById('regContact').value,
+          password: document.getElementById('regPassword').value,
+          medicalInfo: JSON.parse(document.getElementById('regMedicalInfo').value || '{}')
+        };
+
+        const res = await fetch(`${API_BASE}/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+
+        const result = await res.json();
+        
+        if (res.ok) {
+          regStatus.className = 'success';
+          regStatus.innerHTML = `Registration successful! <br>Your wallet address: ${result.walletAddress}`;
+          // Clear form
+          document.getElementById('regPatientID').value = '';
+          document.getElementById('regName').value = '';
+          document.getElementById('regAge').value = '';
+          document.getElementById('regContact').value = '';
+          document.getElementById('regPassword').value = '';
+        } else {
+          throw new Error(result.message);
+        }
+      } catch (error) {
+        regStatus.className = 'error';
+        regStatus.textContent = `Error: ${error.message}`;
+      }
+    }
+
+    async function login() {
+      const loginStatus = document.getElementById('loginStatus');
+      const loginResult = document.getElementById('loginResult');
+      
+      try {
+        const data = {
+          patientID: document.getElementById('loginPatientID').value,
+          password: document.getElementById('loginPassword').value
+        };
+
+        const res = await fetch(`${API_BASE}/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+
+        const result = await res.json();
+        console.log(result);
+        
+        if (res.ok) {
+          loginStatus.className = 'success';
+          loginStatus.textContent = 'Login successful!';
+          
+          loginResult.innerHTML = `
+            <div class="success">
+              <p><strong>Welcome, ${result.patientData.name}!</strong></p>
+              <p>Patient ID: ${result.patientData.patientID}</p>
+              <p>Wallet Address: ${result.patientData.walletAddress}</p>
+            </div>
+          `;
+        } else {
+          throw new Error(result.message);
+        }
+      } catch (error) {
+        loginStatus.className = 'error';
+        loginStatus.textContent = `Error: ${error.message}`;
+        loginResult.innerHTML = '';
+      }
+    }
+  </script>
+</body>
+</html>

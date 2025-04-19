@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Read JSON and Submit to Firebase</title>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js"></script>
+</head>
+<body>
+  <h1>Submit JSON Data to Firebase</h1>
+  <button id="submitButton">Submit Data</button>
+
+  <script>
+    // Firebase configuration
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_AUTH_DOMAIN",
+      databaseURL: "YOUR_DATABASE_URL",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_STORAGE_BUCKET",
+      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+
+    // Initialize Firebase
+    const app = firebase.initializeApp(firebaseConfig);
+    const database = firebase.database(app);
+
+    document.getElementById('submitButton').addEventListener('click', async () => {
+      try {
+        // Fetch the JSON file
+        const response = await fetch('hello.json');
+        const data = await response.json();
+
+        // Push data to Firebase
+        const dbRef = firebase.database().ref('data');
+        await dbRef.set(data);
+
+        alert('Data submitted successfully!');
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Failed to submit data.');
+      }
+    });
+  </script>
+</body>
+</html>

@@ -22,6 +22,6 @@
       "@/*": ["./*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "backend-project/src/routes/dataRoutes.js", "backend-project/src/controllers/dataController.js", "backend-project/src/controllers/appointmentController.js", "backend-project/src/models/appointmentModel.js", "backend-project/src/models/dataModel.js", "backend-project/src/routes/appointmentRoutes.js", "backend-project/src/app.js", "backend-project/src/database.js", "backend-project/src/services/appointmentService.js", "backend-project/src/services/dataService.js"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
   "exclude": ["node_modules"]
 }
