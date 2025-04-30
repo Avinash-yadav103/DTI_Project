@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Shield, CheckCircle, XCircle, UserPlus, Clock, FileText } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -9,74 +9,88 @@ import { Button } from "@/components/ui/button"
 import { DashboardLayout } from "@/components/dashboard/layout/dashboard-layout"
 import { useAuth } from "@/lib/auth"
 import { toast } from "sonner"
+import axios from "axios"
+import { GrantAccessModal } from "@/components/modals/grant-access-modal"
 
 export default function AccessControlPage() {
   const { user } = useAuth()
   const [activeTab, setActiveTab] = useState("pending")
   const [loadingApproveId, setLoadingApproveId] = useState<number | null>(null)
   const [loadingRejectId, setLoadingRejectId] = useState<number | null>(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [accessGrants, setAccessGrants] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
 
-  // Mock access requests data
-  const accessRequests = [
-    {
-      id: 1,
-      name: "Dr. Sarah Johnson",
-      hospital: "City General Hospital",
-      requestedOn: "2023-06-15",
-      status: "pending",
-      type: "doctor",
-      reason: "Primary care physician requesting access to provide ongoing care",
-      duration: "1 year",
-      accessLevel: "Full medical history",
-    },
-    {
-      id: 2,
-      name: "Dr. Michael Chen",
-      hospital: "Medical Research Institute",
-      requestedOn: "2023-06-10",
-      status: "approved",
-      type: "specialist",
-      reason: "Cardiology consultation",
-      duration: "6 months",
-      accessLevel: "Cardiovascular records only",
-      approvedOn: "2023-06-11",
-    },
-    {
-      id: 3,
-      name: "National Health Department",
-      hospital: "Government Agency",
-      requestedOn: "2023-06-05",
-      status: "rejected",
-      type: "government",
-      reason: "Public health research",
-      duration: "Indefinite",
-      accessLevel: "Anonymized data only",
-      rejectedOn: "2023-06-06",
-    },
-    {
-      id: 4,
-      name: "Dr. Emily Wong",
-      hospital: "City General Hospital",
-      requestedOn: "2023-06-14",
-      status: "pending",
-      type: "specialist",
-      reason: "Dermatology consultation",
-      duration: "3 months",
-      accessLevel: "Recent medical history",
-    },
-    {
-      id: 5,
-      name: "Medical Research University",
-      hospital: "Research Institution",
-      requestedOn: "2023-06-08",
-      status: "approved",
-      type: "research",
-      reason: "Clinical trial for new hypertension medication",
-      duration: "1 year",
-      accessLevel: "Cardiovascular records only",
-      approvedOn: "2023-06-09",
-    },
-  ]
+  const API_BASE_URL = 'http://localhost:5000/api/access-control';
+  const LOGS_API_URL = 'http://localhost:5000/api/transaction-logs';
+
+  // Fetch existing access grants
+  const fetchAccessGrants = async () => {
+    if (!user?.id) return;
+
+    setIsLoading(true);
+    try {
+      const response = await axios.get(API_BASE_URL, { params: { patientId: user.id } });
+      setAccessGrants(response.data);
+    } catch (error) {
+      console.error('Error fetching access grants:', error);
+      toast.error('Failed to load access grants');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Handle newly granted access
+  const handleAccessGranted = (accessData) => {
+    fetchAccessGrants(); // Refresh the list
+  };
+
+  // Handle access revocation
+  const handleRevokeAccess = async (accessId, doctorName) => {
+    if (!user?.id) return;
+
+    try {
+      await axios.post(`${API_BASE_URL}/revoke/${accessId}`);
+      
+      // Log this action
+      await axios.post(LOGS_API_URL, {
+        patientId: user.id,
+        action: "revoke",
+        actor: {
+          name: user.name || "Patient",
+          role: "Patient",
+          id: user.id
+        },
+        details: `Revoked access for Dr. ${doctorName}`,
+        hash: '0x' + Math.random().toString(16).substring(2, 34),
+        blockNumber: Math.floor(Math.random() * 1000000) + 14000000,
+        consensusTimestamp: new Date(),
+        additionalInfo: {
+          ipAddress: "127.0.0.1",
+          device: navigator.userAgent,
+          location: "Local"
+        }
+      });
+
+      toast.success(`Access for Dr. ${doctorName} has been revoked`);
+      fetchAccessGrants(); // Refresh the list
+    } catch (error) {
+      console.error('Error revoking access:', error);
+      toast.error('Failed to revoke access');
+    }
+  };
+
+  useEffect(() => {
+    if (user?.id) {
+      fetchAccessGrants();
+    } else {
+      // Simulate loading
+      const timer = setTimeout(() => {
+        setIsLoading(false);
+      }, 1200);
+      return () => clearTimeout(timer);
+    }
+  }, [user?.id]);
 
   const handleApproveAccess = async (id: number) => {
     setLoadingApproveId(id)
@@ -99,19 +113,6 @@ export default function AccessControlPage() {
     } catch (error) {
       console.error("Error rejecting access:", error)
       toast.error("Failed to reject access")
-    } finally {
-      setLoadingRejectId(null)
-    }
-  }
-
-  const handleRevokeAccess = async (id: number) => {
-    setLoadingRejectId(id)
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 800))
-      toast.success("Access revoked successfully")
-    } catch (error) {
-      console.error("Error revoking access:", error)
-      toast.error("Failed to revoke access")
     } finally {
       setLoadingRejectId(null)
     }
@@ -168,222 +169,93 @@ export default function AccessControlPage() {
       requiredRole="patient"
     >
       <div className="mb-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <div>
-              <CardTitle className="text-2xl">Access Control</CardTitle>
-              <CardDescription>Manage who can access your medical records</CardDescription>
+        <Card className="bg-white dark:bg-gray-900 shadow-md">
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-2xl">Access Management</CardTitle>
+                <CardDescription>
+                  Control who has access to your medical records
+                </CardDescription>
+              </div>
+              <Button 
+                className="bg-sky-600 hover:bg-sky-700 text-white"
+                onClick={() => setIsModalOpen(true)}
+              >
+                Grant Access
+              </Button>
             </div>
-            <Button className="bg-sky-600 hover:bg-sky-700">
-              <UserPlus className="mr-2 h-4 w-4" />
-              Grant New Access
-            </Button>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue="pending" value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid grid-cols-3 mb-6">
-                <TabsTrigger value="pending">Pending Requests</TabsTrigger>
-                <TabsTrigger value="approved">Approved Access</TabsTrigger>
-                <TabsTrigger value="rejected">Rejected Requests</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="pending">
-                <div className="space-y-4">
-                  {accessRequests.filter((r) => r.status === "pending").length > 0 ? (
-                    accessRequests
-                      .filter((r) => r.status === "pending")
-                      .map((request) => (
-                        <div key={request.id} className="bg-amber-50 border border-amber-200 p-4 rounded-lg">
-                          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <h4 className="text-base font-medium">{request.name}</h4>
-                                <Badge className="bg-amber-100 text-amber-800">
-                                  {request.type.charAt(0).toUpperCase() + request.type.slice(1)}
-                                </Badge>
-                              </div>
-                              <p className="text-sm text-gray-600">{request.hospital}</p>
-                              <p className="text-sm text-amber-600 mt-1">Requested on {request.requestedOn}</p>
-
-                              <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-1 text-sm">
-                                <div>
-                                  <span className="text-gray-600">Reason: </span>
-                                  <span className="text-gray-900">{request.reason}</span>
-                                </div>
-                                <div>
-                                  <span className="text-gray-600">Duration: </span>
-                                  <span className="text-gray-900">{request.duration}</span>
-                                </div>
-                                <div>
-                                  <span className="text-gray-600">Access Level: </span>
-                                  <span className="text-gray-900">{request.accessLevel}</span>
-                                </div>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="h-9 border-red-300 bg-red-50 text-red-600 hover:bg-red-100"
-                                onClick={() => handleRejectAccess(request.id)}
-                                disabled={loadingRejectId === request.id}
-                              >
-                                {loadingRejectId === request.id ? (
-                                  <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-red-600 border-t-transparent"></div>
-                                ) : (
-                                  <XCircle className="h-4 w-4 mr-1" />
-                                )}
-                                Reject
-                              </Button>
-                              <Button
-                                size="sm"
-                                className="h-9 bg-sky-600 hover:bg-sky-700 text-white"
-                                onClick={() => handleApproveAccess(request.id)}
-                                disabled={loadingApproveId === request.id}
-                              >
-                                {loadingApproveId === request.id ? (
-                                  <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
-                                ) : (
-                                  <CheckCircle className="h-4 w-4 mr-1" />
-                                )}
-                                Approve
-                              </Button>
-                            </div>
-                          </div>
-                        </div>
-                      ))
-                  ) : (
-                    <div className="text-center py-8 bg-gray-50 rounded-lg border border-gray-200">
-                      <Clock className="h-12 w-12 text-gray-400 mx-auto mb-3" />
-                      <h3 className="text-lg font-medium text-gray-900">No Pending Requests</h3>
-                      <p className="text-gray-600 mt-1">You don't have any pending access requests at the moment.</p>
+            {/* Render your access grants list here */}
+            {isLoading ? (
+              <div className="flex justify-center items-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-sky-500"></div>
+              </div>
+            ) : accessGrants.length > 0 ? (
+              <div className="space-y-4">
+                {accessGrants.map(grant => (
+                  <div 
+                    key={grant._id} 
+                    className="border rounded-lg p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4"
+                  >
+                    <div>
+                      <h3 className="font-medium">Dr. {grant.doctor.name}</h3>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        {grant.doctor.hospital} • ID: {grant.doctor.id}
+                      </p>
+                      <div className="mt-1 flex flex-wrap gap-1">
+                        {grant.recordTypes.map(type => (
+                          <Badge key={type} variant="outline" className="text-xs">
+                            {type.charAt(0).toUpperCase() + type.slice(1)}
+                          </Badge>
+                        ))}
+                      </div>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        Granted: {new Date(grant.grantedAt).toLocaleDateString()} • 
+                        Expires: {grant.accessDuration === 'permanent' 
+                          ? 'Never' 
+                          : new Date(grant.expiresAt).toLocaleDateString()}
+                      </p>
                     </div>
-                  )}
-                </div>
-              </TabsContent>
-
-              <TabsContent value="approved">
-                <div className="space-y-4">
-                  {accessRequests.filter((r) => r.status === "approved").length > 0 ? (
-                    accessRequests
-                      .filter((r) => r.status === "approved")
-                      .map((request) => (
-                        <div key={request.id} className="bg-green-50 border border-green-200 p-4 rounded-lg">
-                          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <h4 className="text-base font-medium">{request.name}</h4>
-                                <Badge className="bg-green-100 text-green-800">
-                                  {request.type.charAt(0).toUpperCase() + request.type.slice(1)}
-                                </Badge>
-                              </div>
-                              <p className="text-sm text-gray-600">{request.hospital}</p>
-                              <p className="text-sm text-green-600 mt-1">Approved on {request.approvedOn}</p>
-
-                              <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-1 text-sm">
-                                <div>
-                                  <span className="text-gray-600">Reason: </span>
-                                  <span className="text-gray-900">{request.reason}</span>
-                                </div>
-                                <div>
-                                  <span className="text-gray-600">Duration: </span>
-                                  <span className="text-gray-900">{request.duration}</span>
-                                </div>
-                                <div>
-                                  <span className="text-gray-600">Access Level: </span>
-                                  <span className="text-gray-900">{request.accessLevel}</span>
-                                </div>
-                              </div>
-                            </div>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="h-9 border-red-300 bg-red-50 text-red-600 hover:bg-red-100"
-                              onClick={() => handleRevokeAccess(request.id)}
-                              disabled={loadingRejectId === request.id}
-                            >
-                              {loadingRejectId === request.id ? (
-                                <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-red-600 border-t-transparent"></div>
-                              ) : (
-                                <XCircle className="h-4 w-4 mr-1" />
-                              )}
-                              Revoke Access
-                            </Button>
-                          </div>
-                        </div>
-                      ))
-                  ) : (
-                    <div className="text-center py-8 bg-gray-50 rounded-lg border border-gray-200">
-                      <CheckCircle className="h-12 w-12 text-gray-400 mx-auto mb-3" />
-                      <h3 className="text-lg font-medium text-gray-900">No Approved Access</h3>
-                      <p className="text-gray-600 mt-1">You haven't approved access for anyone yet.</p>
+                    <div className="flex gap-2 self-end md:self-auto">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleRevokeAccess(grant._id, grant.doctor.name)}
+                      >
+                        Revoke Access
+                      </Button>
                     </div>
-                  )}
-                </div>
-              </TabsContent>
-
-              <TabsContent value="rejected">
-                <div className="space-y-4">
-                  {accessRequests.filter((r) => r.status === "rejected").length > 0 ? (
-                    accessRequests
-                      .filter((r) => r.status === "rejected")
-                      .map((request) => (
-                        <div key={request.id} className="bg-gray-50 border border-gray-200 p-4 rounded-lg">
-                          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <h4 className="text-base font-medium">{request.name}</h4>
-                                <Badge className="bg-gray-200 text-gray-800">
-                                  {request.type.charAt(0).toUpperCase() + request.type.slice(1)}
-                                </Badge>
-                              </div>
-                              <p className="text-sm text-gray-600">{request.hospital}</p>
-                              <p className="text-sm text-red-600 mt-1">Rejected on {request.rejectedOn}</p>
-
-                              <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-1 text-sm">
-                                <div>
-                                  <span className="text-gray-600">Reason: </span>
-                                  <span className="text-gray-900">{request.reason}</span>
-                                </div>
-                                <div>
-                                  <span className="text-gray-600">Duration: </span>
-                                  <span className="text-gray-900">{request.duration}</span>
-                                </div>
-                                <div>
-                                  <span className="text-gray-600">Access Level: </span>
-                                  <span className="text-gray-900">{request.accessLevel}</span>
-                                </div>
-                              </div>
-                            </div>
-                            <Button
-                              size="sm"
-                              className="h-9 bg-sky-600 hover:bg-sky-700 text-white"
-                              onClick={() => handleApproveAccess(request.id)}
-                              disabled={loadingApproveId === request.id}
-                            >
-                              {loadingApproveId === request.id ? (
-                                <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
-                              ) : (
-                                <CheckCircle className="h-4 w-4 mr-1" />
-                              )}
-                              Approve Now
-                            </Button>
-                          </div>
-                        </div>
-                      ))
-                  ) : (
-                    <div className="text-center py-8 bg-gray-50 rounded-lg border border-gray-200">
-                      <XCircle className="h-12 w-12 text-gray-400 mx-auto mb-3" />
-                      <h3 className="text-lg font-medium text-gray-900">No Rejected Requests</h3>
-                      <p className="text-gray-600 mt-1">You haven't rejected any access requests yet.</p>
-                    </div>
-                  )}
-                </div>
-              </TabsContent>
-            </Tabs>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12 border border-dashed rounded-lg">
+                <Shield className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                <h3 className="font-medium">No Active Access Grants</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                  You haven't granted access to any healthcare providers yet.
+                </p>
+                <Button 
+                  className="mt-4 bg-sky-600 hover:bg-sky-700 text-white"
+                  onClick={() => setIsModalOpen(true)}
+                >
+                  Grant New Access
+                </Button>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
+
+      {/* Grant Access Modal */}
+      <GrantAccessModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        patientId={user?.id}
+        onAccessGranted={handleAccessGranted}
+      />
     </DashboardLayout>
   )
 }

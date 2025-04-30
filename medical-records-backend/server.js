@@ -24,6 +24,9 @@ app.use('/api/medical-records', require('./routes/medicalRecords'));
 // Add this after your existing routes
 app.use('/api/transaction-logs', require('./routes/transactionLogs'));
 
+// Add this after your existing routes
+app.use('/api/access-control', require('./routes/accessControl'));
+
 // File upload storage configuration
 const uploadDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadDir)) {
