@@ -29,6 +29,7 @@ import { Input } from "@/components/ui/input"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { toast } from "sonner"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import axios from 'axios';
 
 export default function AccessLogsPage() {
   const { user } = useAuth()
@@ -40,215 +41,184 @@ export default function AccessLogsPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [activeTab, setActiveTab] = useState("transactions")
   const [showHelp, setShowHelp] = useState(false)
+  const API_BASE_URL = 'http://localhost:5000/api/transaction-logs';
+  const [transactionLogs, setTransactionLogs] = useState([]);
 
-  // Mock blockchain transaction logs
-  const transactionLogs = [
-    {
-      id: "tx_001",
-      time: "Jun 15, 2023 09:30",
-      timestamp: "2023-06-15T09:30:00Z",
-      action: "view",
-      actor: {
-        name: "Dr. Rajesh Kumar",
-        role: "Doctor",
-        hospital: "City General Hospital",
-        id: "DOC-5678-1234",
-      },
-      details: "Viewed patient medical history",
-      hash: "0x7f9a3d5a8b1c6e7f4d2c1b5a8e7f9a3d5a8b1c6e",
-      blockNumber: 14567823,
-      consensusTimestamp: "2023-06-15T09:30:05Z",
-      additionalInfo: {
-        ipAddress: "192.168.1.45",
-        device: "Desktop - Chrome",
-        location: "New Delhi, India",
-        accessReason: "Regular checkup",
-        recordsAccessed: ["Medical History", "Allergies", "Current Medications"],
-      },
-    },
-    {
-      id: "tx_002",
-      time: "Jun 15, 2023 10:45",
-      timestamp: "2023-06-15T10:45:00Z",
-      action: "update",
-      actor: {
-        name: "Dr. Rajesh Kumar",
-        role: "Doctor",
-        hospital: "City General Hospital",
-        id: "DOC-5678-1234",
-      },
-      details: "Added new diagnosis: Seasonal allergies",
-      hash: "0x8e7f9a3d5a8b1c6e7f4d2c1b5a8e7f9a3d5a8b1c",
-      blockNumber: 14567845,
-      consensusTimestamp: "2023-06-15T10:45:12Z",
-      additionalInfo: {
-        ipAddress: "192.168.1.45",
-        device: "Desktop - Chrome",
-        location: "New Delhi, India",
-        changesMade: ["Added diagnosis code J30.2", "Updated patient condition status"],
-        previousValue: "No known allergies",
-        newValue: "Seasonal allergic rhinitis",
-      },
-    },
-    {
-      id: "tx_003",
-      time: "Jun 15, 2023 10:50",
-      timestamp: "2023-06-15T10:50:00Z",
-      action: "update",
-      actor: {
-        name: "Dr. Rajesh Kumar",
-        role: "Doctor",
-        hospital: "City General Hospital",
-        id: "DOC-5678-1234",
-      },
-      details: "Prescribed medication: Cetirizine 10mg",
-      hash: "0x9a3d5a8b1c6e7f4d2c1b5a8e7f9a3d5a8b1c6e7f",
-      blockNumber: 14567850,
-      consensusTimestamp: "2023-06-15T10:50:08Z",
-      additionalInfo: {
-        ipAddress: "192.168.1.45",
-        device: "Desktop - Chrome",
-        location: "New Delhi, India",
-        changesMade: ["Added prescription", "Updated medication list"],
-        medicationDetails: {
-          name: "Cetirizine",
-          dosage: "10mg",
-          frequency: "Once daily",
-          duration: "10 days",
-        },
-      },
-    },
-    {
-      id: "tx_004",
-      time: "Jun 10, 2023 14:20",
-      timestamp: "2023-06-10T14:20:00Z",
-      action: "access",
-      actor: {
-        name: "Dr. Michael Chen",
-        role: "Specialist",
-        hospital: "Medical Research Institute",
-        id: "DOC-9012-3456",
-      },
-      details: "Access granted to cardiovascular records",
-      hash: "0xa8b1c6e7f9a3d5a8b1c6e7f4d2c1b5a8e7f9a3d5",
-      blockNumber: 14566123,
-      consensusTimestamp: "2023-06-10T14:20:15Z",
-      additionalInfo: {
-        ipAddress: "192.168.2.78",
-        device: "Tablet - Safari",
-        location: "Mumbai, India",
-        accessReason: "Cardiology consultation",
-        accessDuration: "6 months",
-        accessLevel: "Partial - Cardiovascular records only",
-      },
-    },
-    {
-      id: "tx_005",
-      time: "Jun 08, 2023 11:15",
-      timestamp: "2023-06-08T11:15:00Z",
-      action: "view",
-      actor: {
-        name: "Dr. Michael Chen",
-        role: "Specialist",
-        hospital: "Medical Research Institute",
-        id: "DOC-9012-3456",
-      },
-      details: "Viewed cardiovascular records",
-      hash: "0xb1c6e7f9a3d5a8b1c6e7f4d2c1b5a8e7f9a3d5a8",
-      blockNumber: 14565478,
-      consensusTimestamp: "2023-06-08T11:15:22Z",
-      additionalInfo: {
-        ipAddress: "192.168.2.78",
-        device: "Tablet - Safari",
-        location: "Mumbai, India",
-        accessReason: "Cardiology consultation",
-        recordsAccessed: ["ECG Reports", "Cardiac Enzyme Tests", "Blood Pressure Readings"],
-      },
-    },
-    {
-      id: "tx_006",
-      time: "Jun 05, 2023 09:45",
-      timestamp: "2023-06-05T09:45:00Z",
-      action: "revoke",
-      actor: {
-        name: "John Doe (You)",
-        role: "Patient",
-        hospital: "",
-        id: "PAT-1234-5678",
-      },
-      details: "Revoked access for National Health Department",
-      hash: "0xc6e7f9a3d5a8b1c6e7f4d2c1b5a8e7f9a3d5a8b1",
-      blockNumber: 14564789,
-      consensusTimestamp: "2023-06-05T09:45:05Z",
-      additionalInfo: {
-        ipAddress: "192.168.3.15",
-        device: "Mobile - Android",
-        location: "Bangalore, India",
-        revokedFrom: {
-          name: "National Health Department",
-          role: "Government Agency",
-          id: "GOV-7890-1234",
-        },
-        revokeReason: "No longer needed for research purposes",
-      },
-    },
-    {
-      id: "tx_007",
-      time: "May 28, 2023 16:30",
-      timestamp: "2023-05-28T16:30:00Z",
-      action: "upload",
-      actor: {
-        name: "Dr. Emily Wong",
-        role: "Doctor",
-        hospital: "City General Hospital",
-        id: "DOC-3456-7890",
-      },
-      details: "Uploaded X-Ray report",
-      hash: "0xe7f9a3d5a8b1c6e7f4d2c1b5a8e7f9a3d5a8b1c6",
-      blockNumber: 14560123,
-      consensusTimestamp: "2023-05-28T16:30:18Z",
-      additionalInfo: {
-        ipAddress: "192.168.1.89",
-        device: "Desktop - Firefox",
-        location: "Delhi, India",
-        fileDetails: {
-          name: "Chest_XRay_20230528.dcm",
-          type: "DICOM Image",
-          size: "15.4 MB",
-          hash: "0xf7e6d5c4b3a2918273645",
-        },
-      },
-    },
-  ]
-
-  // Simulate loading
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false)
-    }, 1200)
-    return () => clearTimeout(timer)
-  }, [])
-
-  const handleExportLogs = (format) => {
-    toast.success(`Exporting blockchain logs as ${format.toUpperCase()}`)
-  }
-
-  const handleVerifyTransaction = (hash: string) => {
-    toast.success("Verifying transaction on blockchain explorer")
-    window.open(`https://example-blockchain-explorer.com/tx/${hash}`, "_blank")
-  }
-
-  const toggleTransactionDetails = (id: string) => {
-    if (expandedTransaction === id) {
-      setExpandedTransaction(null)
-    } else {
-      setExpandedTransaction(id)
+  const fetchTransactionLogs = async () => {
+    if (!user?.id) return;
+    
+    setIsLoading(true);
+    try {
+      const params = { patientId: user.id };
+      
+      if (timeFilter !== 'all') params.timeFilter = timeFilter;
+      if (actionFilter !== 'all') params.actionFilter = actionFilter;
+      if (actorFilter !== 'all') params.actorFilter = actorFilter;
+      if (searchQuery) params.searchQuery = searchQuery;
+      
+      const response = await axios.get(API_BASE_URL, { params });
+      
+      const formattedLogs = response.data.map(log => ({
+        id: log._id,
+        time: new Date(log.timestamp).toLocaleString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+          hour: 'numeric',
+          minute: 'numeric',
+          hour12: true
+        }),
+        timestamp: log.timestamp,
+        action: log.action,
+        actor: log.actor,
+        details: log.details,
+        hash: log.hash,
+        blockNumber: log.blockNumber,
+        consensusTimestamp: log.consensusTimestamp,
+        additionalInfo: log.additionalInfo
+      }));
+      
+      setTransactionLogs(formattedLogs);
+    } catch (error) {
+      console.error('Error fetching transaction logs:', error);
+      toast.error('Failed to load transaction logs');
+      
+      if (process.env.NODE_ENV === 'development') {
+        setTransactionLogs(mockTransactionLogs);
+      }
+    } finally {
+      setIsLoading(false);
     }
-  }
+  };
 
-  // Filter logs based on selected filters and search
+  const fetchMedicalRecord = async (recordId) => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/${recordId}`, {
+        params: { 
+          userId: user.id,
+          userName: user.name,
+          userRole: 'Patient' 
+        }
+      });
+      
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching record:', error);
+      toast.error('Failed to load medical record');
+      return null;
+    }
+  };
+
+  useEffect(() => {
+    if (user?.id) {
+      fetchTransactionLogs();
+    } else {
+      const timer = setTimeout(() => {
+        setIsLoading(false);
+      }, 1200);
+      return () => clearTimeout(timer);
+    }
+  }, [user?.id, timeFilter, actionFilter, actorFilter, searchQuery]);
+
+  const handleExportLogs = async (format) => {
+    if (!user?.id) return;
+    
+    try {
+      toast.loading(`Exporting logs as ${format.toUpperCase()}...`);
+      
+      if (format === 'json' || format === 'csv') {
+        window.open(`${API_BASE_URL}/export?patientId=${user.id}&format=${format}`, '_blank');
+        toast.dismiss();
+        toast.success(`Exported logs as ${format.toUpperCase()}`);
+      } else if (format === 'pdf') {
+        toast.dismiss();
+        toast.success(`Exporting blockchain logs as PDF`);
+      }
+    } catch (error) {
+      toast.dismiss();
+      console.error('Error exporting logs:', error);
+      toast.error('Failed to export logs');
+    }
+  };
+
+  const recordTransactionView = async (transactionId) => {
+    if (!user?.id) return;
+    
+    try {
+      if (typeof transactionId === 'string' && transactionId.length > 8) {
+        console.log("Sending data to server:", {
+          patientId: user.id,
+          action: 'view',
+          actor: {
+            name: user.name || 'Patient',
+            role: 'Patient',
+            id: user.id
+          },
+          details: `Viewed transaction details for ${transactionId}`,
+          // Other fields...
+        });
+        await axios.post(API_BASE_URL, {
+          patientId: user.id,
+          action: 'view',
+          actor: {
+            name: user.name || 'Patient',
+            role: 'Patient',
+            id: user.id
+          },
+          details: `Viewed transaction details for ${transactionId}`,
+          hash: '0x' + Math.random().toString(16).substring(2, 34),
+          blockNumber: Math.floor(Math.random().toString(16).substring(2, 34)),
+          consensusTimestamp: new Date(),
+          additionalInfo: {
+            ipAddress: '127.0.0.1',
+            device: navigator.userAgent,
+            location: 'Local'
+          }
+        });
+      }
+    } catch (error) {
+      console.error('Error recording transaction view:', error);
+    }
+  };
+
+  const toggleTransactionDetails = (id) => {
+    if (expandedTransaction === id) {
+      setExpandedTransaction(null);
+    } else {
+      setExpandedTransaction(id);
+      recordTransactionView(id);
+    }
+  };
+
+  const handleVerifyTransaction = (hash) => {
+    toast.success("Verifying transaction on blockchain explorer");
+    window.open(`https://example-blockchain-explorer.com/tx/${hash}`, "_blank");
+    
+    if (user?.id) {
+      axios.post(API_BASE_URL, {
+        patientId: user.id,
+        action: 'view',
+        actor: {
+          name: user.name || 'Patient',
+          role: 'Patient',
+          id: user.id
+        },
+        details: `Verified transaction hash: ${hash}`,
+        hash: '0x' + Math.random().toString(16).substring(2, 34),
+        blockNumber: Math.floor(Math.random() * 1000000) + 14000000,
+        consensusTimestamp: new Date(),
+        additionalInfo: {
+          ipAddress: '127.0.0.1',
+          device: navigator.userAgent,
+          location: 'Local'
+        }
+      }).catch(error => {
+        console.error('Error recording verification:', error);
+      });
+    }
+  };
+
   const filteredLogs = transactionLogs.filter((log) => {
-    // Filter by time
     if (timeFilter === "today") {
       const today = new Date().toISOString().split("T")[0]
       const logDate = new Date(log.timestamp).toISOString().split("T")[0]
@@ -263,17 +233,14 @@ export default function AccessLogsPage() {
       if (new Date(log.timestamp) < monthAgo) return false
     }
 
-    // Filter by action
     if (actionFilter !== "all" && log.action !== actionFilter) {
       return false
     }
 
-    // Filter by actor
     if (actorFilter !== "all" && log.actor.role.toLowerCase() !== actorFilter) {
       return false
     }
 
-    // Filter by search query
     if (searchQuery) {
       const query = searchQuery.toLowerCase()
       const matchesId = log.id.toLowerCase().includes(query)
@@ -288,7 +255,6 @@ export default function AccessLogsPage() {
     return true
   })
 
-  // Group logs by date for the activity view
   const groupedByDate = filteredLogs.reduce((groups, log) => {
     const date = new Date(log.timestamp).toISOString().split("T")[0]
     if (!groups[date]) {
@@ -298,7 +264,6 @@ export default function AccessLogsPage() {
     return groups
   }, {})
 
-  // Get action icon
   const getActionIcon = (action) => {
     switch (action) {
       case "view":
@@ -316,7 +281,6 @@ export default function AccessLogsPage() {
     }
   }
 
-  // Format date for display
   const formatDate = (dateString) => {
     const date = new Date(dateString)
     return date.toLocaleDateString("en-US", {
@@ -684,7 +648,6 @@ export default function AccessLogsPage() {
                                     </div>
                                   </div>
 
-                                  {/* Additional details based on action type */}
                                   {log.action === "view" && log.additionalInfo.recordsAccessed && (
                                     <div className="mt-4">
                                       <h4 className="text-sm font-medium text-gray-300 mb-2">Records Accessed</h4>
