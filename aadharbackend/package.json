@@ -19,6 +19,7 @@
     "form-data": "^4.0.2",
     "multer": "^1.4.5-lts.2",
     "nodemon": "^3.1.9",
+    "rss-server": "file:",
     "web3": "^4.16.0"
   }
 }

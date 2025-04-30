@@ -20,7 +20,7 @@ export default function LoginPage() {
   const redirect = searchParams.get("redirect") || "/dashboard"
   const { login, isAuthenticated } = useAuth()
 
-  const API_BASE = 'http://10.12.16.45:8881/api'
+  const API_BASE = 'http://localhost:8881/api'
   
   const [activeTab, setActiveTab] = useState<"login" | "register">("login")
   const [userType, setUserType] = useState<"patient" | "doctor" | "government" | "student" | null>("patient")
@@ -169,7 +169,7 @@ export default function LoginPage() {
 
     try {
       // Make the API call
-      const response = await fetch(`http://10.12.16.45:4505/login`, {
+      const response = await fetch(`http://localhost:4505/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

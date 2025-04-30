@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { FileText, Download, Share2, Eye, Upload, ChevronDown, FileUp, Pencil } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -25,6 +25,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { saveAs } from 'file-saver';
+import axios from 'axios';
+
+// Add this API base URL - adjust if needed
+const API_BASE_URL = 'http://localhost:5000/api/medical-records';
 
 export default function MedicalRecordsPage() {
   const { user } = useAuth()
@@ -122,6 +126,143 @@ export default function MedicalRecordsPage() {
     },
   ])
 
+  const [isLoadingRecords, setIsLoadingRecords] = useState(false);
+  const [showDemoData, setShowDemoData] = useState(false);
+
+  // Fetch real records from MongoDB
+  const fetchMedicalRecords = async () => {
+    if (!user?.id) return;
+    
+    setIsLoadingRecords(true);
+    try {
+      const response = await axios.get(API_BASE_URL, {
+        params: { patientId: user.id }
+      });
+      
+      const apiRecords = response.data;
+      
+      // Format records to match our component's data structure
+      const formattedRecords = apiRecords.map(record => ({
+        id: record._id,
+        title: record.title,
+        doctor: record.doctor,
+        hospital: record.hospital,
+        date: record.date,
+        type: record.type,
+        diagnosis: record.diagnosis,
+        prescription: record.prescription,
+        clinicalNotes: record.clinicalNotes,
+        documents: record.documents.map(doc => ({
+          name: doc.name,
+          type: doc.type,
+          url: doc.fileUrl
+        }))
+      }));
+      
+      // If we have real records, don't show demo data
+      if (formattedRecords.length > 0) {
+        setMedicalRecords(formattedRecords);
+        setShowDemoData(false);
+      }
+    } catch (error) {
+      console.error('Error fetching medical records:', error);
+      toast.error('Failed to load medical records');
+    } finally {
+      setIsLoadingRecords(false);
+    }
+  };
+
+  // Upload medical record to MongoDB
+  const uploadMedicalRecord = async () => {
+    if (!user?.id) {
+      toast.error('User authentication required');
+      return;
+    }
+    
+    setIsUploading(true);
+    
+    try {
+      // Create a FormData object to handle files
+      const formData = new FormData();
+      
+      // Add text fields
+      formData.append('patientId', user.id);
+      formData.append('title', newRecord.title);
+      formData.append('type', newRecord.type);
+      formData.append('doctor', newRecord.doctor);
+      formData.append('hospital', newRecord.hospital);
+      formData.append('date', newRecord.date);
+      formData.append('diagnosis', newRecord.diagnosis);
+      formData.append('clinicalNotes', newRecord.clinicalNotes);
+      
+      // Add prescription as JSON string
+      formData.append('prescription', JSON.stringify(newRecord.prescription.filter(p => p.trim() !== '')));
+      
+      // Add files
+      uploadedFiles.forEach(file => {
+        formData.append('documents', file);
+      });
+      
+      // Add this right before the axios call
+      console.log("Sending data to server:", {
+        patientId: user.id,
+        title: newRecord.title,
+        // Log other fields to verify
+      });
+
+      // Then modify your axios call to log more details
+      const response = await axios.post(API_BASE_URL, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      
+      console.log("Server response:", response.data);
+      // Rest of your code...
+      
+      const savedRecord = response.data;
+      
+      // Format the saved record to match our component structure
+      const formattedRecord = {
+        id: savedRecord._id,
+        title: savedRecord.title,
+        doctor: savedRecord.doctor,
+        hospital: savedRecord.hospital,
+        date: savedRecord.date,
+        type: savedRecord.type,
+        diagnosis: savedRecord.diagnosis,
+        prescription: savedRecord.prescription,
+        clinicalNotes: savedRecord.clinicalNotes,
+        documents: savedRecord.documents.map(doc => ({
+          name: doc.name,
+          type: doc.type,
+          url: doc.fileUrl
+        }))
+      };
+      
+      // Add the new record to state
+      setMedicalRecords(prevRecords => [formattedRecord, ...prevRecords]);
+      
+      // Close modal and show success message
+      setIsModalOpen(false);
+      toast.success('Medical record saved successfully');
+      
+      // If this is our first real record, turn off demo data
+      if (showDemoData) {
+        setShowDemoData(false);
+      }
+    } catch (error) {
+      console.error("Detailed error info:", {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status
+      });
+      toast.error(`Failed to save: ${error.response?.data?.message || error.message}`);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   // Add this function to download a record as PDF
   const handleDownloadRecord = async (id) => {
     const record = medicalRecords.find(r => r.id === id);
@@ -204,6 +345,21 @@ export default function MedicalRecordsPage() {
     } finally {
       document.body.removeChild(printElement);
     }
+  };
+
+  // Add this function for downloading files from your API
+  const handleDocumentDownload = (doc) => {
+    if (doc.url) {
+      // This is a real file from the API
+      window.open(`http://localhost:5000${doc.url}`, '_blank');
+    } else {
+      // This is a demo file, create a sample text file
+      const blob = new Blob([`This is a sample ${doc.type} file for ${doc.name}`], { 
+        type: 'text/plain;charset=utf-8' 
+      });
+      saveAs(blob, doc.name);
+    }
+    toast.success(`Downloaded ${doc.name}`);
   };
 
   const handleShareRecord = (id) => {
@@ -388,34 +544,47 @@ export default function MedicalRecordsPage() {
 
   // Save record
   const saveRecord = () => {
-    const fileDocuments = uploadedFiles.map(file => ({
-      name: file.name,
-      type: file.name.split('.').pop().toUpperCase()
-    }))
-    
-    const recordToSave = {
-      ...newRecord,
-      id: recordToEdit ? recordToEdit.id : medicalRecords.length + 1,
-      documents: fileDocuments,
-      // Clean up empty prescription entries
-      prescription: newRecord.prescription.filter(p => p.trim() !== '')
-    }
-    
     if (recordToEdit) {
-      // Update existing record
-      const updatedRecords = medicalRecords.map(record => 
-        record.id === recordToEdit.id ? recordToSave : record
-      )
-      setMedicalRecords(updatedRecords)
-      toast.success("Medical record updated successfully")
+      // For real records from MongoDB
+      if (!showDemoData || typeof recordToEdit.id === 'string') {
+        updateMedicalRecord();
+      } else {
+        // For demo records
+        const updatedRecords = medicalRecords.map(record => 
+          record.id === recordToEdit.id ? {
+            ...newRecord,
+            id: recordToEdit.id,
+            documents: [...recordToEdit.documents, ...uploadedFiles.map(file => ({
+              name: file.name,
+              type: file.name.split('.').pop().toUpperCase()
+            }))]
+          } : record
+        );
+        setMedicalRecords(updatedRecords);
+        setIsModalOpen(false);
+        toast.success("Medical record updated successfully");
+      }
     } else {
-      // Add new record
-      setMedicalRecords([recordToSave, ...medicalRecords])
-      toast.success("Medical record uploaded successfully")
+      // For new records
+      if (!showDemoData) {
+        uploadMedicalRecord();
+      } else {
+        // Add to demo data
+        const demoRecord = {
+          ...newRecord,
+          id: medicalRecords.length + 1,
+          documents: uploadedFiles.map(file => ({
+            name: file.name,
+            type: file.name.split('.').pop().toUpperCase()
+          })),
+          prescription: newRecord.prescription.filter(p => p.trim() !== '')
+        };
+        setMedicalRecords([demoRecord, ...medicalRecords]);
+        setIsModalOpen(false);
+        toast.success("Medical record uploaded successfully");
+      }
     }
-    
-    setIsModalOpen(false)
-  }
+  };
 
   // Preview mode toggle
   const togglePreviewMode = () => {
@@ -446,6 +615,88 @@ export default function MedicalRecordsPage() {
     setViewFullRecordId(null);
     setFullRecord(null);
   }
+
+  // Add this function to update records
+  const updateMedicalRecord = async () => {
+    if (!user?.id || !recordToEdit) return;
+    
+    setIsLoading(true);
+    
+    try {
+      // Create a FormData object to handle files
+      const formData = new FormData();
+      
+      // Add text fields
+      formData.append('title', newRecord.title);
+      formData.append('type', newRecord.type);
+      formData.append('doctor', newRecord.doctor);
+      formData.append('hospital', newRecord.hospital);
+      formData.append('date', newRecord.date);
+      formData.append('diagnosis', newRecord.diagnosis);
+      formData.append('clinicalNotes', newRecord.clinicalNotes);
+      
+      // Add prescription as JSON string
+      formData.append('prescription', JSON.stringify(newRecord.prescription.filter(p => p.trim() !== '')));
+      
+      // Add any new files
+      uploadedFiles.forEach(file => {
+        formData.append('newDocuments', file);
+      });
+      
+      // Send to API
+      const response = await axios.put(`${API_BASE_URL}/${recordToEdit.id}`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      
+      const updatedRecord = response.data;
+      
+      // Format the updated record to match our component structure
+      const formattedRecord = {
+        id: updatedRecord._id,
+        title: updatedRecord.title,
+        doctor: updatedRecord.doctor,
+        hospital: updatedRecord.hospital,
+        date: updatedRecord.date,
+        type: updatedRecord.type,
+        diagnosis: updatedRecord.diagnosis,
+        prescription: updatedRecord.prescription,
+        clinicalNotes: updatedRecord.clinicalNotes,
+        documents: updatedRecord.documents.map(doc => ({
+          name: doc.name,
+          type: doc.type,
+          url: doc.fileUrl
+        }))
+      };
+      
+      // Update the record in state
+      setMedicalRecords(prevRecords => 
+        prevRecords.map(record => 
+          record.id === formattedRecord.id ? formattedRecord : record
+        )
+      );
+      
+      // Close modal and show success message
+      setIsModalOpen(false);
+      toast.success('Medical record updated successfully');
+    } catch (error) {
+      console.error('Error updating medical record:', error);
+      toast.error('Failed to update medical record');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (user?.id) {
+      fetchMedicalRecords();
+    }
+  }, [user?.id]);
+
+  const toggleDemoData = () => {
+    setShowDemoData(prev => !prev);
+  };
 
   return (
     <DashboardLayout
@@ -478,6 +729,15 @@ export default function MedicalRecordsPage() {
             </Button>
           </CardHeader>
           <CardContent>
+            <div className="flex justify-end mb-4">
+              <Button
+                variant="outline"
+                onClick={toggleDemoData}
+                className="text-xs"
+              >
+                {showDemoData ? "Show Real Data Only" : "Include Demo Data"}
+              </Button>
+            </div>
             <div className="space-y-6">
               {medicalRecords.map((record) => (
                 <div key={record.id} className="border border-gray-200 rounded-lg overflow-hidden">
@@ -555,7 +815,7 @@ export default function MedicalRecordsPage() {
                                       variant="ghost" 
                                       size="sm" 
                                       className="h-8 w-8 p-0"
-                                      onClick={() => handleDocumentDownload(doc.name, doc.type)}
+                                      onClick={() => handleDocumentDownload(doc)}
                                     >
                                       <Download className="h-4 w-4 text-gray-500" />
                                     </Button>
@@ -987,7 +1247,7 @@ export default function MedicalRecordsPage() {
                             <p className="text-sm text-gray-500">Added on {formatDate(fullRecord.date)}</p>
                           </div>
                           <Badge>{doc.type}</Badge>
-                          <Button size="sm" variant="outline" onClick={() => handleDocumentDownload(doc.name, doc.type)}>
+                          <Button size="sm" variant="outline" onClick={() => handleDocumentDownload(doc)}>
                             <Download className="h-4 w-4 mr-1" />
                             Download
                           </Button>

@@ -43,8 +43,8 @@ interface AadharResponse {
 export default function RegisterPage() {
   const router = useRouter()
   const [userType, setUserType] = useState<UserType>("patient")
-  const [aadharNumber, setAadharNumber] = useState("1234 5678 9012")
-  const [email, setEmail] = useState("user@example.com")
+  const [aadharNumber, setAadharNumber] = useState("")
+  const [email, setEmail] = useState("")
   const [otp, setOtp] = useState("")
   const [step, setStep] = useState(1)
   const [aadharError, setAadharError] = useState("")
@@ -68,33 +68,30 @@ export default function RegisterPage() {
 
   // Mock Aadhar API response data
   const [userData, setUserData] = useState<AadharResponse>({
-    status: "VALID",
-    message: "Aadhaar Card Exists",
-    care_of: "C/O Ajay Kumar",
-    full_address:
-      "Flat No-154, Plot No-08, Chandanwari Appartment, ., Near Panchshil Appartement, Dwarka Sector-10, Delhi Cantonment, South West Delhi, District Court Complex Dwarka, Delhi, India, 110075",
-    date_of_birth: "10-02-2005",
-    email_hash: "0efffb30cfd80d561f00f8e5a3e6f3c8eec453255f707d3711510b40272e24ce",
-    gender: "M",
-    name: "Anubhav Verma",
+    status: "",
+    message: "",
+    care_of: "",
+    full_address: "",
+    date_of_birth: "",
+    email_hash: "",
+    gender: "",
+    name: "",
     address: {
-      "@entity": "in.co.sandbox.kyc.aadhaar.okyc.address",
-      country: "India",
-      district: "South West Delhi",
-      house: "Flat No-154, Plot No-08, Chandanwari Appartment",
-      landmark: "Near Panchshil Appartement",
-      pincode: 110075,
+      country: "",
+      district: "",
+      house: "",
+      landmark: "",
+      pincode: 0,
       post_office: "",
-      state: "Delhi",
-      street: ".",
-      subdistrict: "Delhi Cantonment",
-      vtc: "District Court Complex Dwarka",
+      state: "",
+      street: "",
+      subdistrict: "",
+      vtc: "",
     },
-    year_of_birth: 2005,
-    mobile_hash: "9fd5b25c2e16a9d39e55a8ebe34abcf1f021ee0246ce704a637128cace0b2b60",
-    // Using a placeholder for the photo to avoid encoding issues
-    photo: "base64EncodedPhotoString",
-    share_code: "2345",
+    year_of_birth: 0,
+    mobile_hash: "",
+    photo: "",
+    share_code: "",
   })
 
   // Generate a random 6-digit OTP when the component mounts
@@ -131,109 +128,253 @@ export default function RegisterPage() {
     setConfirmPassword(e.target.value)
     setConfirmPasswordError("")
   }
+  const API_BASE = process.env.NEXT_PUBLIC_AADHAR_API_URL || "http://localhost:4505"
+  const IS_DEV_MODE = process.env.NODE_ENV === 'development'
+
+  useEffect(() => {
+    if (IS_DEV_MODE) {
+      console.log("%c🔧 DEVELOPMENT MODE ACTIVE", "background: #ffcc00; color: #000; font-weight: bold; padding: 4px;");
+      console.log("Backend URL:", API_BASE);
+      console.log("For testing in dev mode without backend:");
+      console.log("1. Use any valid 12-digit Aadhar number");
+      console.log("2. Use any password (8+ chars)");
+      console.log("3. For OTP, use '123456'");
+    }
+  }, []);
+
   const handleSendOtp = () => {
     // Validate Aadhar number
     if (aadharNumber.replace(/\s/g, "").length !== 12) {
-      setAadharError("Please enter a valid 12-digit Aadhar number")
-      return
+      setAadharError("Please enter a valid 12-digit Aadhar number");
+      return;
     }
 
     // Validate password
     if (password.length < 8) {
-      setPasswordError("Password must be at least 8 characters")
-      return
+      setPasswordError("Password must be at least 8 characters");
+      return;
     }
 
     // Validate confirm password
     if (password !== confirmPassword) {
-      setConfirmPasswordError("Passwords do not match")
-      return
+      setConfirmPasswordError("Passwords do not match");
+      return;
     }
 
-    setIsLoading(true)
+    setIsLoading(true);
 
-    // Simulate API call to fetch Aadhar data
-    const aadharNumberMain = aadharNumber.replace(/\s/g, "") // Remove spaces for API call
-    console.log("Sending Aadhar number:", aadharNumberMain);
-
-    fetch("http://10.12.16.45:4505/send-otp", {
+    // Clean Aadhar number without spaces for API call
+    const cleanAadharNumber = aadharNumber.replace(/\s/g, "");
+    
+    // Create AbortController for timeout handling
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+    
+    // Send to correct endpoint with timeout handling
+    fetch(`${API_BASE}/send-otp`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ aadharNumberMain, password }), // Send Aadhar number and password to the backend
+      body: JSON.stringify({ 
+        aadhaarId: cleanAadharNumber, 
+        password: password 
+      }),
+      signal: controller.signal
     })
       .then((res) => res.json())
       .then((res) => {
-        console.log(res);
+        clearTimeout(timeoutId);
+        console.log("OTP Response:", res);
         if (res.success) {
-          setGeneratedOtp(res.reference_id); // Save the reference ID from the response
-          setStep(2); // Move to the OTP verification step
+          setGeneratedOtp(res.reference_id);
+          setStep(2);
         } else {
-          setAadharError("Failed to send OTP. Please try again.");
+          setAadharError(res.message || "Failed to send OTP. Please try again.");
         }
       })
       .catch((err) => {
-        console.error(err);
-        setAadharError("An error occurred while sending OTP. Please try again.");
+        clearTimeout(timeoutId);
+        console.error("OTP Error:", err);
+        
+        if (err.name === 'AbortError' || err.message === 'Failed to fetch') {
+          // Backend is unreachable, use development mode fallback
+          if (IS_DEV_MODE) {
+            console.log("Using development mode fallback");
+            // Generate a mock reference ID for testing
+            const mockReferenceId = Math.floor(100000 + Math.random() * 900000).toString();
+            setGeneratedOtp(mockReferenceId);
+            console.log("Dev mode mock reference ID:", mockReferenceId);
+            setStep(2);
+            setAadharError("");
+          } else {
+            setAadharError("Unable to connect to verification server. Please check your connection and try again.");
+          }
+        } else {
+          setAadharError("An error occurred while sending OTP. Please try again.");
+        }
       })
       .finally(() => setIsLoading(false));
   }
 
   const handleVerifyOtp = () => {
     if (otp.length === 0) {
-      setOtpError("Please enter the OTP")
-      return
+      setOtpError("Please enter the OTP");
+      return;
     }
 
     if (otp.length !== 6 || isNaN(Number(otp))) {
-      setOtpError("Invalid OTP format. Please enter a 6-digit numeric code.")
-      return
+      setOtpError("Invalid OTP format. Please enter a 6-digit numeric code.");
+      return;
     }
 
-    setIsLoading(true)
+    setIsLoading(true);
+
+    // Create AbortController for timeout handling
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
 
     // Send OTP verification request to the backend
-    fetch("http://10.12.16.45:4505/verify-otp", {
+    fetch(`${API_BASE}/verify-otp`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ otp, reference_id: generatedOtp }), // Use the reference ID from handleSendOtp
+      body: JSON.stringify({ 
+        otp: otp, 
+        reference_id: generatedOtp 
+      }),
+      signal: controller.signal
     })
       .then((res) => res.json())
       .then((res) => {
-        console.log(res);
+        clearTimeout(timeoutId);
+        console.log("Verification Response:", res);
         if (res.success) {
-          setUserData(res.data); // Update userData with the response data
+          // Update the user data with the response from the server
+          setUserData({
+            ...userData,
+            name: res.name,
+            gender: res.gender,
+            date_of_birth: res.dob,
+            full_address: res.address,
+            photo: res.photo,
+            status: "VALID",
+            message: "Aadhaar Card Verified Successfully"
+          });
           setShowConfirmationModal(true);
         } else {
           setOtpError(res.message || "Failed to verify OTP. Please try again.");
         }
       })
       .catch((err) => {
-        console.error(err)
-        setOtpError("An error occurred while verifying OTP. Please try again.")
+        clearTimeout(timeoutId);
+        console.error("Verification Error:", err);
+        
+        if (err.name === 'AbortError' || err.message === 'Failed to fetch') {
+          // Backend is unreachable, use development mode fallback
+          if (IS_DEV_MODE) {
+            console.log("Using development mode fallback for OTP verification");
+            // In development mode, any OTP is valid
+            if (otp === "123456" || IS_DEV_MODE) {
+              // Mock user data for testing
+              setUserData({
+                ...userData,
+                name: "Test User",
+                gender: "M",
+                date_of_birth: "01-01-1990",
+                full_address: "123 Test Street, Test City, Test State, India",
+                photo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+P+/HgAFdQJ+8RYg9AAAAABJRU5ErkJggg==",
+                status: "VALID",
+                message: "Aadhaar Card Verified Successfully (Dev Mode)"
+              });
+              setShowConfirmationModal(true);
+            } else {
+              setOtpError("Invalid OTP. In dev mode, use '123456' or any 6 digits.");
+            }
+          } else {
+            setOtpError("Unable to connect to verification server. Please check your connection and try again.");
+          }
+        } else {
+          setOtpError("An error occurred while verifying OTP. Please try again.");
+        }
       })
-      .finally(() => setIsLoading(false))
+      .finally(() => setIsLoading(false));
   }
 
   const handleConfirmRegister = () => {
-    // Store user data in localStorage to use in medical-info page
+    setIsLoading(true);
+    
+    // Prepare the initial medical info data
+    const medicalData = {
+      height: "",
+      weight: "", 
+      bloodType: "",
+      allergiesDetails: "",
+      emergencyContact: "",
+      medications: "",
+      conditions: "",
+      vaccines: ""
+    };
+    
+    // Store user data for the next step
     localStorage.setItem(
       "registrationData",
       JSON.stringify({
         aadharNumber: aadharNumber.replace(/\s/g, ""),
         password,
         userData,
+      })
+    );
+    
+    // Call the register-user endpoint directly with minimal required data
+    fetch("http://localhost:4505/register-user", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ...medicalData,
+        // Add any additional required fields from the confirmation
+        aadharId: aadharNumber.replace(/\s/g, "")
       }),
-    )
-
-    // Navigate to medical info page
-    router.push("/medical-info")
+    })
+      .then((res) => res.json())
+      .then((res) => {
+        console.log("Registration Response:", res);
+        if (res.success) {
+          // Navigate to medical info page to complete profile
+          router.push("/medical-info");
+        } else {
+          alert(res.message || "Registration failed. Please try again.");
+        }
+      })
+      .catch((err) => {
+        console.error("Registration Error:", err);
+        alert("An error occurred during registration. Please try again.");
+      })
+      .finally(() => setIsLoading(false));
   }
 
   // For demo purposes, add a direct navigation button
   const renderDirectNavigationButton = () => (
     <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
       <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">For demonstration purposes:</p>
-      <Button variant="outline" className="w-full" onClick={() => router.push("/medical-info")}>
+      <Button 
+        variant="outline" 
+        className="w-full" 
+        onClick={() => {
+          // Simulate successful registration with test data
+          localStorage.setItem(
+            "registrationData",
+            JSON.stringify({
+              aadharNumber: "123456789012",
+              password: "password123",
+              userData: {
+                name: "Test User",
+                gender: "M",
+                date_of_birth: "01-01-1990",
+                full_address: "Test Address, India",
+              },
+            })
+          );
+          router.push("/medical-info");
+        }}
+      >
         Skip Verification & Continue
       </Button>
     </div>
@@ -376,6 +517,7 @@ export default function RegisterPage() {
             userData={userData}
             onConfirm={handleConfirmRegister}
             onCancel={() => setShowConfirmationModal(false)}
+            className="max-w-lg"
           />
         </div>
       )}

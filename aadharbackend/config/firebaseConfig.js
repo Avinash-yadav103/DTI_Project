@@ -6,7 +6,7 @@ const initializeFirebase = () => {
   try {
     // Check if app is already initialized to avoid multiple initializations
     if (admin.apps.length === 0) {
-      const serviceAccountPath = path.join(__dirname, "./project-charak-firebase-adminsdk-fbsvc-d9521be673.json");
+      const serviceAccountPath = path.join(__dirname, "./dti-project-7d7f4-firebase-adminsdk-fbsvc-8a7571a876.json");
       const serviceAccount = require(serviceAccountPath);
       
       admin.initializeApp({
