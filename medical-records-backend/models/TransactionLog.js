@@ -10,7 +10,7 @@ const transactionLogSchema = new mongoose.Schema({
   action: {
     type: String,
     required: true,
-    enum: ['view', 'update', 'access', 'revoke', 'upload'],
+    enum: ['view', 'update', 'access', 'revoke', 'upload', 'share', 'download'],
     index: true
   },
   timestamp: {

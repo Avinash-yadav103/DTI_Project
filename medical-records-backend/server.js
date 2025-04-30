@@ -20,12 +20,9 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/medical-r
 
 // Routes
 app.use('/api/medical-records', require('./routes/medicalRecords'));
-
-// Add this after your existing routes
 app.use('/api/transaction-logs', require('./routes/transactionLogs'));
-
-// Add this after your existing routes
 app.use('/api/access-control', require('./routes/accessControl'));
+app.use('/api/vaccinations', require('./routes/vaccinations'));
 
 // File upload storage configuration
 const uploadDir = path.join(__dirname, 'uploads');
