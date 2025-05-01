@@ -8,10 +8,12 @@ import { Badge } from "@/components/ui/badge"
 import { DashboardLayout } from "@/components/dashboard/layout/dashboard-layout"
 import { useAuth } from "@/lib/auth"
 import { toast } from "sonner"
+import { useRouter } from "next/navigation"
 
 export default function AppointmentsPage() {
   const { user } = useAuth()
   const [cancelingId, setCancelingId] = useState<number | null>(null)
+  const router = useRouter()
 
   // Mock appointments data
   const appointments = [
@@ -99,7 +101,7 @@ export default function AppointmentsPage() {
   }
 
   const handleBookAppointment = () => {
-    toast.success("Redirecting to appointment booking page")
+    router.push("/dashboard/patient/book-appointment");
   }
 
   const sidebarItems = [

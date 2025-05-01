@@ -25,6 +25,8 @@ app.use('/api/access-control', require('./routes/accessControl'));
 app.use('/api/vaccinations', require('./routes/vaccinations'));
 app.use('/api/emergency', require('./routes/emergency'));
 app.use('/api/users', require('./routes/users'));
+app.use('/api/appointments', require('./routes/appointments'));
+// app.use('/api/appointments', require('./routes/appointments'));
 
 // Make sure this line is in your server.js
 app.use('/api/users', require('./routes/users'));
