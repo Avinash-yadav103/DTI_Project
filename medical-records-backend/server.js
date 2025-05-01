@@ -24,6 +24,7 @@ app.use('/api/transaction-logs', require('./routes/transactionLogs'));
 app.use('/api/access-control', require('./routes/accessControl'));
 app.use('/api/vaccinations', require('./routes/vaccinations'));
 app.use('/api/emergency', require('./routes/emergency'));
+app.use('/api/users', require('./routes/users'));
 
 // File upload storage configuration
 const uploadDir = path.join(__dirname, 'uploads');

@@ -82,95 +82,59 @@ export default function MedicalInfoPage() {
     setEmergencyContact({ ...emergencyContact, [field]: value })
   }
 
-  // Update the handleSubmit function to send all data to the API
+  // Modified handleSubmit function in medical-info/page.tsx
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    setIsLoading(true)
+    e.preventDefault();
+    setIsLoading(true);
 
-    // Collect all medical data
-    const medicalData = {
-      allergies,
-      // medications,
-      // conditions,
-      bloodType,
-    }
+    // Get registration data from localStorage
+    const storedData = localStorage.getItem("registrationData");
+    const registrationData = storedData ? JSON.parse(storedData) : null;
 
-    try {
-      const response = await fetch("http://10.12.16.45:4505/register_user", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(medicalData),
-      });
-
-      if (!response.ok) {
-      throw new Error("Failed to register medical data");
-      }
-
-      const result = await response.json();
-      console.log("Registration successful:", result);
-      toast.success("Medical data registered successfully!");
-    } catch (error) {
-      console.error("Error registering medical data:", error);
-      toast.error("Failed to register medical data. Please try again.");
+    if (!registrationData) {
+      toast.error("Registration data not found. Please start the registration process again.");
       setIsLoading(false);
+      router.push("/register");
       return;
     }
 
-    // Get registration data from localStorage
-    const storedData = localStorage.getItem("registrationData")
-    const registrationData = storedData ? JSON.parse(storedData) : null
-
-    if (!registrationData) {
-      toast.error("Registration data not found. Please start the registration process again.")
-      setIsLoading(false)
-      router.push("/register")
-      return
-    }
-
-    // Prepare complete data for API
-    const completeData = {
-      aadharNumber: registrationData.aadharNumber,
-      password: registrationData.password,
-      userData: registrationData.userData,
-      medicalData,
-    }
+    // Prepare medical data
+    const medicalData = {
+      patientId: registrationData.aadhaarId,
+      bloodType,
+      allergies,
+      emergencyContact
+    };
 
     try {
-      // In a real app, you would send this data to your API
-      // Replace the URL below with your actual API endpoint
-      console.log("Sending data to API:", completeData)
-
-      // Uncomment and modify this code when you have your API endpoint
-      /*
-      const response = await fetch('YOUR_API_ENDPOINT', {
-        method: 'POST',
+      // Send medical info to the API
+      const response = await fetch("http://localhost:5000/api/users/medical-info", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify(completeData),
+        body: JSON.stringify(medicalData),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to submit registration data');
+        throw new Error("Failed to save medical data");
       }
-      */
 
-      // Simulate API call for now
-      await new Promise((resolve) => setTimeout(resolve, 1500))
-
+      const result = await response.json();
+      console.log("Medical data saved successfully:", result);
+      
       // Clear registration data from localStorage
-      localStorage.removeItem("registrationData")
+      localStorage.removeItem("registrationData");
 
-      toast.success("Registration complete! Please log in.")
-
+      toast.success("Registration complete! Please log in.");
+      
       // Redirect to login page
-      router.push("/login")
+      router.push("/login");
     } catch (error) {
-      console.error("Error submitting data:", error)
-      toast.error("There was an error submitting your information. Please try again.")
-      setIsLoading(false)
+      console.error("Error submitting medical data:", error);
+      toast.error("There was an error submitting your information. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
   }
 

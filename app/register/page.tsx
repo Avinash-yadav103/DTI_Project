@@ -301,43 +301,37 @@ export default function RegisterPage() {
   const handleConfirmRegister = () => {
     setIsLoading(true);
     
-    // Prepare the initial medical info data
-    const medicalData = {
-      height: "",
-      weight: "", 
-      bloodType: "",
-      allergiesDetails: "",
-      emergencyContact: "",
-      medications: "",
-      conditions: "",
-      vaccines: ""
-    };
+    const cleanAadharNumber = aadharNumber.replace(/\s/g, "");
     
-    // Store user data for the next step
-    localStorage.setItem(
-      "registrationData",
-      JSON.stringify({
-        aadharNumber: aadharNumber.replace(/\s/g, ""),
-        password,
-        userData,
-      })
-    );
-    
-    // Call the register-user endpoint directly with minimal required data
-    fetch("http://localhost:4505/register-user", {
+    // Call the MongoDB registration endpoint
+    fetch("http://localhost:5000/api/users/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        ...medicalData,
-        // Add any additional required fields from the confirmation
-        aadharId: aadharNumber.replace(/\s/g, "")
+        aadhaarId: cleanAadharNumber,
+        password,
+        name: userData.name,
+        gender: userData.gender,
+        dateOfBirth: userData.date_of_birth,
+        fullAddress: userData.full_address,
+        photo: userData.photo,
+        role: userType
       }),
     })
       .then((res) => res.json())
       .then((res) => {
         console.log("Registration Response:", res);
         if (res.success) {
-          // Navigate to medical info page to complete profile
+          // Store user data for the medical info page
+          localStorage.setItem(
+            "registrationData",
+            JSON.stringify({
+              aadhaarId: cleanAadharNumber,
+              userData,
+            })
+          );
+          
+          // Navigate to medical info page
           router.push("/medical-info");
         } else {
           alert(res.message || "Registration failed. Please try again.");

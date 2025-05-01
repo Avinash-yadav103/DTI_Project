@@ -150,65 +150,81 @@ export default function LoginPage() {
     toast.success(`OTP sent! For demo purposes, use: ${generatedOtp}`)
   }
 
-  const handlePatientLogin = async () => {
-    setIsLoading(true)
-    setLoginStatus(null)
+  // Update your handlePatientLogin function to use MongoDB authentication
+const handlePatientLogin = async () => {
+  setIsLoading(true);
+  setLoginStatus(null);
 
-    // Validate inputs
-    if (aadharNumber.replace(/\s/g, "").length !== 12) {
-      setAadharError("Please enter a valid 12-digit Aadhar number")
-      setIsLoading(false)
-      return
-    }
+  // Validate inputs
+  if (aadharNumber.replace(/\s/g, "").length !== 12) {
+    setAadharError("Please enter a valid 12-digit Aadhar number");
+    setIsLoading(false);
+    return;
+  }
 
-    if (password.length === 0) {
-      setPasswordError("Please enter your password")
-      setIsLoading(false)
-      return
-    }
+  if (password.length === 0) {
+    setPasswordError("Please enter your password");
+    setIsLoading(false);
+    return;
+  }
 
-    try {
-      // Make the API call
-      const response = await fetch(`http://localhost:4505/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userID: aadharNumber.replace(/\s/g, ""),
-          password: password,
-          role: "patients",
-        })
-      });
+  const cleanAadharNumber = aadharNumber.replace(/\s/g, "");
 
-      const result = await response.json();
-      console.log("Login result:", result); 
-      setUser(result); // For debugging
+  try {
+    // Make the API call to MongoDB backend
+    const response = await fetch(`http://localhost:5000/api/users/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        aadhaarId: cleanAadharNumber,
+        password: password
+      })
+    });
 
-      if (response.ok) {
-        // Login successful
-        setLoginStatus({
-          message: "Login successful!",
-          success: true,
-          patientData: result.data
-        });
-        
-        login(mockUsers.patient);
-        toast.success("Login successful!");
-        router.push(redirect);
-      } else {
-        throw new Error(result.message || "Login failed");
-      }
-    } catch (error: any) {
-      // Handle authentication error
+    const result = await response.json();
+    console.log("MongoDB Login result:", result);
+
+    if (response.ok && result.success) {
+      // Login successful with MongoDB
       setLoginStatus({
-        message: `Error: ${error.message || "Login failed"}`,
-        success: false
+        message: result.message || "Login successful!",
+        success: true,
+        patientData: result.user
       });
-      toast.error("Login failed. Please check your credentials.");
-      console.error("Login error:", error);
+      
+      // Create a user object with MongoDB data
+      const mongoUser = {
+        id: result.user._id,
+        name: result.user.name,
+        email: result.user.email || `${cleanAadharNumber}@example.com`,
+        role: "patient",
+        aadhaarId: result.user.aadhaarId,
+        // Add other fields from MongoDB user as needed
+      };
+      
+      // Set the user in context
+      setUser(mongoUser);
+      
+      // Use the existing login function to maintain app state
+      login(mongoUser);
+      
+      toast.success(result.message || "Login successful!");
+      router.push(redirect);
+    } else {
+      throw new Error(result.message || "Authentication failed");
     }
-
+  } catch (error) {
+    // Handle authentication error
+    setLoginStatus({
+      message: `Error: ${error.message || "Login failed"}`,
+      success: false
+    });
+    toast.error(error.message || "Login failed. Please check your credentials.");
+    console.error("MongoDB Login error:", error);
+  } finally {
     setIsLoading(false);
   }
+};
 
   const handlePatientRegister = async () => {
     setIsLoading(true);
