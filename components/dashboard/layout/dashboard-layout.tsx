@@ -6,6 +6,7 @@ import { AuthGuard } from "@/components/dashboard/layout/auth-guard"
 import { Sidebar } from "@/components/dashboard/layout/sidebar"
 import { Header } from "@/components/dashboard/layout/header"
 import { SettingsModal } from "@/components/settings-modal"
+import { SOSButton } from "@/components/emergency/sos-button"
 import type { UserRole } from "@/lib/auth"
 
 interface DashboardLayoutProps {
@@ -69,6 +70,10 @@ export function DashboardLayout({
         <div className="md:ml-[250px] p-4 pt-[80px]">
           <Header title={title} user={user} notifications={notifications} />
           <main className="mt-6">{children}</main>
+          {/* Add SOS button only for patient role */}
+          {user && requiredRole === "patient" && (
+            <SOSButton user={user} />
+          )}
         </div>
         <SettingsModal open={showSettingsModal} onOpenChange={setShowSettingsModal} />
       </div>
