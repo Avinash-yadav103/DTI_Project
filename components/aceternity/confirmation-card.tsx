@@ -70,9 +70,11 @@ export const ConfirmationCard = ({ userData, onConfirm, onCancel, className }: C
           ) : (
             <div className="w-20 h-20 rounded-full bg-sky-100 flex items-center justify-center text-sky-600 text-xl font-bold">
               {userData.name
-                .split(" ")
-                .map((n) => n[0])
-                .join("")}
+                ? userData.name
+                    .split(" ")
+                    .map((n) => n[0])
+                    .join("")
+                : "U"}
             </div>
           )}
           <div>

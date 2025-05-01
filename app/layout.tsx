@@ -2,7 +2,7 @@ import "./globals.css";
 import { UserProvider } from "@/context/UserContext";
 
 export const metadata = {
-  title: "Hackaccino 3.0",
+  title: "CareFolio",
   description: "A Next.js application",
 };
 

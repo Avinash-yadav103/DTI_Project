@@ -168,7 +168,7 @@ export default function RegisterPage() {
     
     // Create AbortController for timeout handling
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+    const timeoutId = setTimeout(() => controller.abort(), 15000); // 5 second timeout
     
     // Send to correct endpoint with timeout handling
     fetch(`${API_BASE}/send-otp`, {
