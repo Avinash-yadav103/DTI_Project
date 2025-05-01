@@ -52,6 +52,8 @@ const generateAccessToken = async () => {
   }
 };
 
+generateAccessToken()
+
 module.exports = {
   generateAccessToken,
 };

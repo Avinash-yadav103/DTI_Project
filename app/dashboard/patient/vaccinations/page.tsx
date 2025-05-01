@@ -37,6 +37,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { format } from "date-fns"
 import { toast } from "sonner"
 import { useUser } from "@/context/UserContext"
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
+import { saveAs } from 'file-saver';
 
 export default function VaccinationsPage() {
   const { user, logout } = useAuth()

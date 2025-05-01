@@ -1,7 +1,6 @@
 const { admin, db } = require("../config/firebaseConfig");
 const userDataStore = require("../services/userDataStore.js");
 const { generateUserId, hashPassword } = require("../utils/cryptoUtils");
-const { createPatientWallet } = require("../services/createWallet");
 
 const registerUser = async (req, res) => {
   console.log("Registration request received:", req.body);
@@ -70,24 +69,6 @@ const registerUser = async (req, res) => {
     });
   }
 
-  // Wallet generation
-  let walletAddress = "", privateKey = "";
-  try {
-    const result = await createPatientWallet();
-    if (result && result.success) {
-      walletAddress = result.wallet.address;
-      privateKey = result.wallet.privateKey;
-    } else {
-      throw new Error(result?.error || "Wallet creation failed");
-    }
-  } catch (error) {
-    console.error("Error in wallet creation:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Failed to generate wallet. Please try again.",
-    });
-  }
-
   const userId = generateUserId(latestAadhar, plainPassword);
 
   let vaccines = Array.isArray(data.vaccines)
@@ -116,8 +97,6 @@ const registerUser = async (req, res) => {
     contact: data.emergencyContact || "",
     age: data.age || "",
     currentMedications: data.medications || "",
-    walletAddress: walletAddress || "",
-    privateKey: privateKey || "",
     medicalDetails: {
       bloodGroup: data.bloodType || "",
       allergies: allergies,

@@ -4,7 +4,8 @@
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "start": "node server.js",
+    "dev": "nodemon server.js"
   },
   "keywords": [],
   "author": "",
@@ -18,7 +19,7 @@
     "firebase-admin": "^13.2.0",
     "form-data": "^4.0.2",
     "multer": "^1.4.5-lts.2",
-    "nodemon": "^3.1.9",
+    "nodemon": "^3.1.10",
     "rss-server": "file:",
     "web3": "^4.16.0"
   }
