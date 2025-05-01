@@ -149,14 +149,90 @@ export default function PatientProfilePage() {
     }))
   }
 
-  const handleSaveProfile = () => {
-    setIsSaving(true)
-    // Simulate API call
-    setTimeout(() => {
-      toast.success("Profile updated successfully")
-      setIsSaving(false)
-    }, 1500)
-  }
+  const handleSaveProfile = async () => {
+    setIsSaving(true);
+    
+    try {
+      // Format the profile data to match our database structure
+      const formattedProfile = {
+        // Basic user information
+        name: profile.name,
+        email: profile.email,
+        phone: profile.phone,
+        fullAddress: profile.address,
+        dateOfBirth: profile.dateOfBirth,
+        gender: profile.gender,
+        bio: profile.bio,
+        
+        // Medical information
+        medicalInfo: {
+          bloodType: profile.bloodType,
+          height: profile.height,
+          weight: profile.weight,
+          allergies: profile.allergies.map(allergy => {
+            // Parse allergies to match our schema format
+            const match = allergy.match(/(.*) \((.*)\)/);
+            return match 
+              ? { type: match[1], severity: match[2], reaction: match[1] }
+              : { type: allergy, severity: "mild", reaction: allergy };
+          }),
+          chronicConditions: profile.chronicConditions
+        },
+        
+        // Emergency contact
+        emergencyContact: {
+          name: profile.emergencyContact.name,
+          relation: profile.emergencyContact.relationship,
+          phone: profile.emergencyContact.phone
+        }
+      };
+      
+      // Add this before sending the request
+      console.log("Sending update for aadhaarId:", userContext?.aadhaarId);
+      console.log("Profile data being sent:", formattedProfile);
+
+      // Send the updated profile to the backend
+      const response = await fetch(`http://localhost:5000/api/users/update-profile`, {
+        method: 'PUT',
+        headers: { 
+          'Content-Type': 'application/json',
+          // Use token if available, otherwise send without auth header
+          ...(localStorage.getItem('token') ? {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          } : {})
+        },
+        body: JSON.stringify({
+          aadhaarId: userContext?.aadhaarId || userContext?.data?.basic_details?.data?.aadhaar_number,
+          profileData: formattedProfile
+        })
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to update profile');
+      }
+      
+      const result = await response.json();
+      
+      // And after getting the response
+      console.log("Response from server:", result);
+
+      // Update the user context if you need to reflect changes immediately
+      if (result.success) {
+        toast.success("Profile updated successfully");
+        
+        // Optionally refresh user data in context
+        // refreshUserData(); // Implement this function if needed
+      } else {
+        toast.error(result.message || "Failed to update profile");
+      }
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      toast.error(error.message || "An error occurred while updating your profile");
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const router = useRouter()
   const { logout } = useAuth()
@@ -525,8 +601,23 @@ export default function PatientProfilePage() {
                   </TabsContent>
                 </Tabs>
               </CardContent>
+              {/* Add this right before CardFooter */}
+              {isSaving && (
+                <div className="px-6 pb-2">
+                  <div className="bg-sky-50 border border-sky-200 p-3 rounded-md">
+                    <p className="text-sky-700 text-sm">
+                      Saving your profile changes...
+                    </p>
+                  </div>
+                </div>
+              )}
+
               <CardFooter className="flex justify-end">
-                <Button className="bg-sky-600 hover:bg-sky-700" onClick={handleSaveProfile} disabled={isSaving}>
+                <Button 
+                  className="bg-sky-600 hover:bg-sky-700" 
+                  onClick={handleSaveProfile} 
+                  disabled={isSaving}
+                >
                   {isSaving ? (
                     <>
                       <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
@@ -547,4 +638,3 @@ export default function PatientProfilePage() {
     </DashboardLayout>
   )
 }
-

@@ -433,7 +433,7 @@ export default function PatientDashboard() {
           <Card>
             <CardHeader>
               <CardTitle>Personal Information</CardTitle>
-              <CardDescription>Your basic information stored on the blockchain</CardDescription>
+              <CardDescription>Your information stored in the secure database</CardDescription>
             </CardHeader>
             <CardContent>
               {isLoadingProfile ? (
@@ -449,67 +449,39 @@ export default function PatientDashboard() {
                         <p>{profile.name}</p>
                       </div>
                       <div>
-                        <h3 className="text-sm font-medium text-gray-600">Patient ID</h3>
-                        <p>{profile.id}</p>
+                        <h3 className="text-sm font-medium text-gray-600">Aadhaar ID</h3>
+                        <p>{profile.id || profile.aadhaarId}</p>
                       </div>
                       <div>
                         <h3 className="text-sm font-medium text-gray-600">Email Address</h3>
-                        <p>{profile.email}</p>
+                        <p>{profile.email || "Not provided"}</p>
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-medium text-gray-600">Gender</h3>
+                        <p>{profile.gender || "Not specified"}</p>
                       </div>
                     </div>
                     <div className="space-y-4">
                       <div>
                         <h3 className="text-sm font-medium text-gray-600">Phone Number</h3>
-                        <p>{profile.phone}</p>
+                        <p>{profile.phone || "Not provided"}</p>
                       </div>
                       <div>
-                        <h3 className="text-sm font-medium text-gray-600">Age</h3>
-                        <p>{profile.age} years</p>
+                        <h3 className="text-sm font-medium text-gray-600">Date of Birth</h3>
+                        <p>{profile.dateOfBirth || "Not provided"}</p>
                       </div>
                       <div>
                         <h3 className="text-sm font-medium text-gray-600">Blood Type</h3>
-                        <p>{profile.bloodType}</p>
+                        <p>{profile.bloodType || "Unknown"}</p>
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-medium text-gray-600">Address</h3>
+                        <p>{profile.address || "Not provided"}</p>
                       </div>
                     </div>
                   </div>
-
-                  <div className="mt-8">
-                    <h3 className="text-lg font-medium mb-4">Recent Activity</h3>
-                    <div className="space-y-4">
-                      <div className="bg-gray-50 p-3 rounded-lg border border-gray-200 flex items-start gap-3">
-                        <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
-                          <FileText className="h-4 w-4" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium">Medical record added</p>
-                          <p className="text-xs text-gray-600">Blood Test Results added by Dr. Michael Chen</p>
-                          <p className="text-xs text-gray-500 mt-1">2 days ago</p>
-                        </div>
-                      </div>
-
-                      <div className="bg-gray-50 p-3 rounded-lg border border-gray-200 flex items-start gap-3">
-                        <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center text-green-600">
-                          <CheckCircle className="h-4 w-4" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium">Access request approved</p>
-                          <p className="text-xs text-gray-600">You approved access for Dr. Michael Chen</p>
-                          <p className="text-xs text-gray-500 mt-1">3 days ago</p>
-                        </div>
-                      </div>
-
-                      <div className="bg-gray-50 p-3 rounded-lg border border-gray-200 flex items-start gap-3">
-                        <div className="h-8 w-8 rounded-full bg-amber-100 flex items-center justify-center text-amber-600">
-                          <Calendar className="h-4 w-4" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium">Appointment scheduled</p>
-                          <p className="text-xs text-gray-600">Appointment with Dr. Sarah Johnson on June 25, 2023</p>
-                          <p className="text-xs text-gray-500 mt-1">5 days ago</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                  
+                  {/* Keep the rest of your Recent Activity section */}
                 </>
               ) : (
                 <div className="text-center py-8">

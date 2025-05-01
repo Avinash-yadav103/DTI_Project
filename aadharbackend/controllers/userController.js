@@ -157,6 +157,102 @@ const registerUser = async (req, res) => {
   }
 };
 
+// Add this method to your userController
+const updateUserProfile = async (req, res) => {
+  try {
+    const { aadhaarId, profileData } = req.body;
+    
+    if (!aadhaarId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Aadhaar ID is required'
+      });
+    }
+    
+    console.log("Updating profile for user:", aadhaarId);
+    console.log("Profile data received:", JSON.stringify(profileData, null, 2));
+    
+    // Find the user in MongoDB
+    const User = require('../models/User'); // Adjust path as needed
+    const user = await User.findOne({ aadhaarId });
+    
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found with the provided Aadhaar ID'
+      });
+    }
+    
+    // Update basic user fields
+    if (profileData.name) user.name = profileData.name;
+    if (profileData.email) user.email = profileData.email;
+    if (profileData.phone) user.phone = profileData.phone;
+    if (profileData.fullAddress) user.fullAddress = profileData.fullAddress;
+    if (profileData.dateOfBirth) user.dateOfBirth = profileData.dateOfBirth;
+    if (profileData.gender) user.gender = profileData.gender;
+    if (profileData.bio) user.bio = profileData.bio;
+    
+    await user.save();
+    console.log("User basic info updated");
+    
+    // Update medical info if that model exists
+    try {
+      const MedicalInfo = require('../models/MedicalInfo'); // Adjust path as needed
+      let medicalInfo = await MedicalInfo.findOne({ patientId: aadhaarId });
+      
+      if (medicalInfo && profileData.medicalInfo) {
+        // Update existing medical info
+        if (profileData.medicalInfo.bloodType) medicalInfo.bloodType = profileData.medicalInfo.bloodType;
+        if (profileData.medicalInfo.height) medicalInfo.height = profileData.medicalInfo.height;
+        if (profileData.medicalInfo.weight) medicalInfo.weight = profileData.medicalInfo.weight;
+        if (profileData.medicalInfo.allergies) medicalInfo.allergies = profileData.medicalInfo.allergies;
+        if (profileData.medicalInfo.chronicConditions) medicalInfo.chronicConditions = profileData.medicalInfo.chronicConditions;
+        
+        // Update emergency contact info
+        if (profileData.emergencyContact) {
+          medicalInfo.emergencyContact = profileData.emergencyContact;
+        }
+        
+        medicalInfo.updatedAt = Date.now();
+        await medicalInfo.save();
+        console.log("Medical info updated");
+      } else if (profileData.medicalInfo) {
+        // Create new medical info
+        const newMedicalInfo = new MedicalInfo({
+          patientId: aadhaarId,
+          bloodType: profileData.medicalInfo.bloodType,
+          height: profileData.medicalInfo.height,
+          weight: profileData.medicalInfo.weight,
+          allergies: profileData.medicalInfo.allergies || [],
+          chronicConditions: profileData.medicalInfo.chronicConditions || [],
+          emergencyContact: profileData.emergencyContact || {},
+          createdAt: Date.now(),
+          updatedAt: Date.now()
+        });
+        
+        await newMedicalInfo.save();
+        console.log("New medical info created");
+      }
+    } catch (medicalError) {
+      console.error("Error updating medical info:", medicalError);
+      // Continue with response even if medical info update fails
+    }
+    
+    res.status(200).json({
+      success: true,
+      message: 'Profile updated successfully'
+    });
+  } catch (error) {
+    console.error("Error in updateUserProfile:", error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while updating profile',
+      error: error.message
+    });
+  }
+};
+
 module.exports = {
   registerUser,
+  updateUserProfile
 };

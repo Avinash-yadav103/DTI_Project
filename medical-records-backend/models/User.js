@@ -25,6 +25,16 @@ const userSchema = new mongoose.Schema({
     enum: ['patient', 'doctor', 'student', 'government'],
     default: 'patient'
   },
+  doctorId: {
+    type: String,
+    sparse: true,
+    index: true
+  },
+  specialization: String,
+  hospital: String,
+  licenseNumber: String,
+  yearsOfExperience: Number,
+  education: String,
   createdAt: {
     type: Date,
     default: Date.now

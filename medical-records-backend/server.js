@@ -26,6 +26,9 @@ app.use('/api/vaccinations', require('./routes/vaccinations'));
 app.use('/api/emergency', require('./routes/emergency'));
 app.use('/api/users', require('./routes/users'));
 
+// Make sure this line is in your server.js
+app.use('/api/users', require('./routes/users'));
+
 // File upload storage configuration
 const uploadDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadDir)) {

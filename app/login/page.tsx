@@ -593,19 +593,40 @@ const handlePatientLogin = async () => {
             placeholder="Enter your Doctor ID"
             error={doctorIdError}
           />
+          <Input
+            label="Password"
+            type="password"
+            value={password}
+            onChange={handlePasswordChange}
+            placeholder="Enter your password"
+            error={passwordError}
+          />
+          
+          {loginStatus && (
+            <div className={`p-3 rounded-md ${loginStatus.success ? 'bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-300' : 'bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-300'}`}>
+              <p>{loginStatus.message}</p>
+              {loginStatus.patientData && (
+                <div className="mt-1 text-sm">
+                  <p>Welcome, {loginStatus.patientData.name}!</p>
+                  <p>Doctor ID: {loginStatus.patientData.doctorId}</p>
+                  <p>Specialization: {loginStatus.patientData.specialization}</p>
+                </div>
+              )}
+            </div>
+          )}
           
           <Button
             className="w-full mt-4 z-50 bg-sky-600 hover:bg-sky-700"
-            onClick={handleSendOtp}
+            onClick={handleDoctorLogin}
             disabled={isLoading}
           >
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Sending...
+                Logging in...
               </>
             ) : (
-              "Send OTP"
+              "Login"
             )}
           </Button>
         </div>
@@ -718,6 +739,82 @@ const handlePatientLogin = async () => {
       </Button>
     </div>
   )
+
+  // Add this function to your LoginPage component
+
+const handleDoctorLogin = async () => {
+  setIsLoading(true);
+  setLoginStatus(null);
+
+  // Validate inputs
+  if (doctorId.trim() === "") {
+    setDoctorIdError("Please enter your Doctor ID");
+    setIsLoading(false);
+    return;
+  }
+
+  if (password.length === 0) {
+    setPasswordError("Please enter your password");
+    setIsLoading(false);
+    return;
+  }
+
+  try {
+    // Make API call to MongoDB backend
+    const response = await fetch(`http://localhost:5000/api/users/doctor-login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        doctorId: doctorId,
+        password: password
+      })
+    });
+
+    const result = await response.json();
+    console.log("MongoDB Doctor Login result:", result);
+
+    if (response.ok && result.success) {
+      // Login successful
+      setLoginStatus({
+        message: result.message || "Login successful!",
+        success: true,
+        patientData: result.user // Using patientData to store doctor data too
+      });
+      
+      // Create a user object with MongoDB data
+      const mongoUser = {
+        id: result.user._id,
+        name: result.user.name,
+        email: result.user.email || `${result.user.doctorId}@example.com`,
+        role: "doctor",
+        doctorId: result.user.doctorId,
+        specialization: result.user.specialization,
+        hospital: result.user.hospital
+      };
+      
+      // Set the user in context
+      setUser(mongoUser);
+      
+      // Use the existing login function
+      login(mongoUser);
+      
+      toast.success(result.message || "Login successful!");
+      router.push(redirect);
+    } else {
+      throw new Error(result.message || "Authentication failed");
+    }
+  } catch (error) {
+    // Handle authentication error
+    setLoginStatus({
+      message: `Error: ${error.message || "Login failed"}`,
+      success: false
+    });
+    toast.error(error.message || "Login failed. Please check your credentials.");
+    console.error("MongoDB Doctor Login error:", error);
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   return (
     <main className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">

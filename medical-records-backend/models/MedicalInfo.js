@@ -35,6 +35,8 @@ const medicalInfoSchema = new mongoose.Schema({
   height: { type: String },
   weight: { type: String },
   emergencyContact: emergencyContactSchema,
+  chronicConditions: [String],
+  bio: String,
   createdAt: {
     type: Date,
     default: Date.now
