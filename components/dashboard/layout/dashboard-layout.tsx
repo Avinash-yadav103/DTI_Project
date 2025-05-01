@@ -7,7 +7,9 @@ import { Sidebar } from "@/components/dashboard/layout/sidebar"
 import { Header } from "@/components/dashboard/layout/header"
 import { SettingsModal } from "@/components/settings-modal"
 import { SOSButton } from "@/components/emergency/sos-button"
+import { NotificationsPopup } from "@/components/dashboard/notifications-popup"
 import type { UserRole } from "@/lib/auth"
+import { format } from "date-fns"
 
 interface DashboardLayoutProps {
   children: React.ReactNode
@@ -30,6 +32,14 @@ interface DashboardLayoutProps {
   }
   notifications?: number
   requiredRole?: UserRole
+  accessRequests?: any[]
+  recordUpdates?: any[]
+  systemNotifications?: any[]
+  onApproveAccess?: () => void
+  onRejectAccess?: () => void
+  onViewRecord?: () => void
+  onMarkAllNotificationsRead?: () => void
+  onViewAllNotifications?: () => void
 }
 
 export function DashboardLayout({
@@ -40,6 +50,14 @@ export function DashboardLayout({
   user,
   notifications,
   requiredRole,
+  accessRequests = [],
+  recordUpdates = [],
+  systemNotifications = [],
+  onApproveAccess,
+  onRejectAccess,
+  onViewRecord,
+  onMarkAllNotificationsRead,
+  onViewAllNotifications
 }: DashboardLayoutProps) {
   const [showSettingsModal, setShowSettingsModal] = useState(false)
 
@@ -69,6 +87,19 @@ export function DashboardLayout({
         />
         <div className="md:ml-[250px] p-4 pt-[80px]">
           <Header title={title} user={user} notifications={notifications} />
+          <div className="flex items-center gap-4">
+            <NotificationsPopup
+              notificationCount={notifications}
+              accessRequests={accessRequests}
+              recordUpdates={recordUpdates}
+              systemNotifications={systemNotifications}
+              onApproveAccess={onApproveAccess}
+              onRejectAccess={onRejectAccess}
+              onViewRecord={onViewRecord}
+              onMarkAllRead={onMarkAllNotificationsRead}
+              onViewAll={onViewAllNotifications}
+            />
+          </div>
           <main className="mt-6">{children}</main>
           {/* Add SOS button only for patient role */}
           {user && requiredRole === "patient" && (

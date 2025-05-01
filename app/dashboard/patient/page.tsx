@@ -28,6 +28,33 @@ import { Loader2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useUser } from "@/context/UserContext";
 
+interface SystemNotification {
+  id: string | number;
+  title: string;
+  message: string;
+  date: string;
+  read: boolean;
+  type?: string;
+}
+
+interface RecordNotification {
+  id: string | number;
+  title: string;
+  doctor: string;
+  hospital: string;
+  date: string;
+  viewed: boolean;
+  type?: string;
+}
+
+interface AccessRequest {
+  id: string | number;
+  name: string;
+  hospital: string;
+  requestedOn: string;
+  status: "pending" | "approved" | "rejected";
+}
+
 export default function PatientDashboard() {
   const { user, logout } = useAuth()
   const [activeTab, setActiveTab] = useState("overview")
@@ -39,7 +66,7 @@ export default function PatientDashboard() {
   // State for data
   const [profile, setProfile] = useState(null)
   const [medicalRecords, setMedicalRecords] = useState([])
-  const [accessRequests, setAccessRequests] = useState([])
+  const [accessRequests, setAccessRequests] = useState<AccessRequest[]>([])
   const [appointments, setAppointments] = useState([])
 
   // Loading states
@@ -54,6 +81,11 @@ export default function PatientDashboard() {
   const [loadingDownloadId, setLoadingDownloadId] = useState<number | null>(null)
   const [loadingShareId, setLoadingShareId] = useState<number | null>(null)
   const [isUpdatingProfile, setIsUpdatingProfile] = useState(false)
+
+  // Notification states
+  const [notificationCount, setNotificationCount] = useState(0)
+  const [systemNotifications, setSystemNotifications] = useState<SystemNotification[]>([])
+  const [recordNotifications, setRecordNotifications] = useState<RecordNotification[]>([])
 
   // Fetch data on component mount
   useEffect(() => {
@@ -82,6 +114,15 @@ export default function PatientDashboard() {
         const appointmentsData = await patientApi.getAppointments()
         setAppointments(appointmentsData)
         setIsLoadingAppointments(false)
+
+        // Calculate notification count - pending access requests + unread system notifications
+        const pendingRequests = requestsData.filter(r => r.status === "pending").length
+        const unreadSystemCount = await patientApi.getUnreadNotificationsCount()
+        const recordUpdates = await patientApi.getRecentRecordUpdates()
+        
+        setRecordNotifications(recordUpdates)
+        setSystemNotifications(await patientApi.getSystemNotifications())
+        setNotificationCount(pendingRequests + unreadSystemCount)
       } catch (error) {
         console.error("Error fetching data:", error)
         setIsLoadingProfile(false)
@@ -94,8 +135,8 @@ export default function PatientDashboard() {
     fetchData()
   }, [])
 
-  const handleApproveAccess = async (id) => {
-    setLoadingApproveId(id)
+  const handleApproveAccess = async (id: string | number) => {
+    setLoadingApproveId(typeof id === 'number' ? id : null);
     try {
       await patientApi.approveAccess(id)
       // Update the access requests list
@@ -107,8 +148,8 @@ export default function PatientDashboard() {
     }
   }
 
-  const handleRejectAccess = async (id) => {
-    setLoadingRejectId(id)
+  const handleRejectAccess = async (id: string | number) => {
+    setLoadingRejectId(typeof id === 'number' ? id : null);
     try {
       await patientApi.rejectAccess(id)
       // Update the access requests list
@@ -120,8 +161,8 @@ export default function PatientDashboard() {
     }
   }
 
-  const handleDownloadRecord = async (id) => {
-    setLoadingDownloadId(id)
+  const handleDownloadRecord = async (id: string | number) => {
+    setLoadingDownloadId(typeof id === 'number' ? id : null);
     try {
       await patientApi.downloadRecord(id)
     } catch (error) {
@@ -131,8 +172,8 @@ export default function PatientDashboard() {
     }
   }
 
-  const handleShareRecord = async (id) => {
-    setLoadingShareId(id)
+  const handleShareRecord = async (id: string | number) => {
+    setLoadingShareId(typeof id === 'number' ? id : null);
     try {
       await patientApi.shareRecord(id)
     } catch (error) {
@@ -156,6 +197,34 @@ export default function PatientDashboard() {
   const handleLogout = () => {
     logout()
     router.push("/login")
+  }
+
+  const handleMarkAllNotificationsRead = async () => {
+      try {
+        if (patientApi.markAllNotificationsRead) {
+          await patientApi.markAllNotificationsRead();
+        }
+        // Update state to reflect all notifications read
+        setSystemNotifications((prevNotifications: SystemNotification[]) => 
+          prevNotifications.map(notification => ({ ...notification, read: true }))
+        );
+        setRecordNotifications((prevNotifications: RecordNotification[]) =>
+          prevNotifications.map(notification => ({ ...notification, viewed: true }))
+        );
+        setNotificationCount(0);
+      } catch (error) {
+        console.error("Error marking notifications as read:", error);
+      }
+    }
+
+  const handleViewAllNotifications = () => {
+    // Navigate to notifications page or show all notifications
+    router.push("/dashboard/patient/notifications")
+  }
+
+  const handleViewRecord = (recordId: string | number) => {
+    // Navigate to the specific record
+    router.push(`/dashboard/patient/records/${recordId}`)
   }
 
   const sidebarItems = [
@@ -206,8 +275,16 @@ export default function PatientDashboard() {
       footerItems={sidebarFooterItems}
       title="Patient Dashboard"
       user={user || { name: "", email: "" }}
-      notifications={3}
+      notifications={notificationCount}
       requiredRole="patient"
+      accessRequests={accessRequests}
+      recordUpdates={recordNotifications}
+      systemNotifications={systemNotifications}
+      onApproveAccess={handleApproveAccess}
+      onRejectAccess={handleRejectAccess}
+      onViewRecord={handleViewRecord}
+      onMarkAllNotificationsRead={handleMarkAllNotificationsRead}
+      onViewAllNotifications={handleViewAllNotifications}
     >
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <Card>
