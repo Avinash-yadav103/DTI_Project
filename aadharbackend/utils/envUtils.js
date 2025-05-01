@@ -1,7 +1,7 @@
 const fs = require("fs");
 
 const updateEnvFile = (key, value) => {
-  const envFilePath = "./.env";
+  const envFilePath = "../.env";
   let envContent = fs.readFileSync(envFilePath, "utf8");
 
   const keyRegex = new RegExp(`^${key}=.*`, "m");

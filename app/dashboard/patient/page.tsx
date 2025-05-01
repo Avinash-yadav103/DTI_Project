@@ -27,6 +27,7 @@ import { patientApi } from "@/lib/api"
 import { Loader2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useUser } from "@/context/UserContext";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface SystemNotification {
   id: string | number;
@@ -86,6 +87,9 @@ export default function PatientDashboard() {
   const [notificationCount, setNotificationCount] = useState(0)
   const [systemNotifications, setSystemNotifications] = useState<SystemNotification[]>([])
   const [recordNotifications, setRecordNotifications] = useState<RecordNotification[]>([])
+
+  // Modal state
+  const [isAppointmentsModalOpen, setIsAppointmentsModalOpen] = useState(false);
 
   // Fetch data on component mount
   useEffect(() => {
@@ -226,6 +230,10 @@ export default function PatientDashboard() {
     // Navigate to the specific record
     router.push(`/dashboard/patient/records/${recordId}`)
   }
+
+  const handleViewAllAppointments = () => {
+    setIsAppointmentsModalOpen(true);
+  };
 
   const sidebarItems = [
     {
@@ -407,7 +415,7 @@ export default function PatientDashboard() {
             )}
           </CardContent>
           <CardFooter>
-            <Button variant="outline" className="w-full">
+            <Button variant="outline" className="w-full" onClick={handleViewAllAppointments}>
               View All
             </Button>
           </CardFooter>
@@ -735,6 +743,159 @@ export default function PatientDashboard() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <Dialog open={isAppointmentsModalOpen} onOpenChange={setIsAppointmentsModalOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>All Appointments</DialogTitle>
+            <DialogDescription>
+              View and manage all your upcoming and past appointments
+            </DialogDescription>
+          </DialogHeader>
+          
+          <Tabs defaultValue="upcoming" className="mt-4">
+            <TabsList className="grid grid-cols-3 mb-4">
+              <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
+              <TabsTrigger value="past">Past</TabsTrigger>
+              <TabsTrigger value="cancelled">Cancelled</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="upcoming">
+              <div className="space-y-4 max-h-[350px] overflow-y-auto pr-2">
+                {appointments
+                  .filter((a) => a.status === "upcoming")
+                  .map((appointment) => (
+                    <div 
+                      key={appointment.id} 
+                      className="flex items-start gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50"
+                    >
+                      <div className="h-10 w-10 rounded-full bg-sky-100 flex items-center justify-center text-sky-600 flex-shrink-0">
+                        <Calendar className="h-5 w-5" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <p className="font-medium">{appointment.doctor}</p>
+                            <p className="text-sm text-gray-600">{appointment.hospital}</p>
+                            <p className="text-sm text-sky-600 mt-1">
+                              {appointment.date}, {appointment.time}
+                            </p>
+                          </div>
+                          <Badge className="bg-sky-100 text-sky-600 hover:bg-sky-200">
+                            Upcoming
+                          </Badge>
+                        </div>
+                        {appointment.notes && (
+                          <p className="text-sm text-gray-500 mt-2 border-t pt-2">
+                            {appointment.notes}
+                          </p>
+                        )}
+                        <div className="flex gap-2 mt-3">
+                          <Button variant="outline" size="sm">Reschedule</Button>
+                          <Button variant="outline" size="sm" className="border-red-300 text-red-600">Cancel</Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                {appointments.filter((a) => a.status === "upcoming").length === 0 && (
+                  <div className="text-center py-8">
+                    <p className="text-gray-500">No upcoming appointments</p>
+                    <Button className="mt-4" size="sm">Schedule New Appointment</Button>
+                  </div>
+                )}
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="past">
+              <div className="space-y-4 max-h-[350px] overflow-y-auto pr-2">
+                {appointments
+                  .filter((a) => a.status === "completed")
+                  .map((appointment) => (
+                    <div 
+                      key={appointment.id} 
+                      className="flex items-start gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50"
+                    >
+                      <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center text-green-600 flex-shrink-0">
+                        <CheckCircle className="h-5 w-5" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <p className="font-medium">{appointment.doctor}</p>
+                            <p className="text-sm text-gray-600">{appointment.hospital}</p>
+                            <p className="text-sm text-gray-500 mt-1">
+                              {appointment.date}, {appointment.time}
+                            </p>
+                          </div>
+                          <Badge className="bg-green-100 text-green-600 hover:bg-green-200">
+                            Completed
+                          </Badge>
+                        </div>
+                        <div className="flex gap-2 mt-3">
+                          <Button variant="outline" size="sm">View Summary</Button>
+                          <Button variant="outline" size="sm">Book Follow-up</Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                {appointments.filter((a) => a.status === "completed").length === 0 && (
+                  <div className="text-center py-8">
+                    <p className="text-gray-500">No past appointments</p>
+                  </div>
+                )}
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="cancelled">
+              <div className="space-y-4 max-h-[350px] overflow-y-auto pr-2">
+                {appointments
+                  .filter((a) => a.status === "cancelled")
+                  .map((appointment) => (
+                    <div 
+                      key={appointment.id} 
+                      className="flex items-start gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50"
+                    >
+                      <div className="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center text-red-600 flex-shrink-0">
+                        <XCircle className="h-5 w-5" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <p className="font-medium">{appointment.doctor}</p>
+                            <p className="text-sm text-gray-600">{appointment.hospital}</p>
+                            <p className="text-sm text-gray-500 mt-1">
+                              {appointment.date}, {appointment.time}
+                            </p>
+                          </div>
+                          <Badge className="bg-red-100 text-red-600 hover:bg-red-200">
+                            Cancelled
+                          </Badge>
+                        </div>
+                        <div className="flex gap-2 mt-3">
+                          <Button variant="outline" size="sm">Reschedule</Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                {appointments.filter((a) => a.status === "cancelled").length === 0 && (
+                  <div className="text-center py-8">
+                    <p className="text-gray-500">No cancelled appointments</p>
+                  </div>
+                )}
+              </div>
+            </TabsContent>
+          </Tabs>
+          
+          <DialogFooter className="mt-6">
+            <Button variant="outline" onClick={() => setIsAppointmentsModalOpen(false)}>
+              Close
+            </Button>
+            <Button onClick={() => router.push('/dashboard/patient/appointments')}>
+              Manage Appointments
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   )
 }

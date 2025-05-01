@@ -1,3 +1,4 @@
 .env
 config/project-charak-firebase-adminsdk-fbsvc-d9521be673.json
 node_modules
+.env.local
