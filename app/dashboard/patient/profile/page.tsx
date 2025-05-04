@@ -17,6 +17,7 @@ import {
   Save,
   Camera,
   Syringe,
+  Activity,
 } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -267,6 +268,11 @@ export default function PatientProfilePage() {
       title: "Vaccinations",
       href: "/dashboard/patient/vaccinations",
       icon: <Syringe className="h-4 w-4" />,
+    },
+    {
+      title: "Health Tracking",
+      href: "/dashboard/patient/tracking",
+      icon: <Activity className="h-4 w-4" />,
     },
     {
       title: "Profile",

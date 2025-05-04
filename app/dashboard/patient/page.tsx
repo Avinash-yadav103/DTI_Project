@@ -15,6 +15,7 @@ import {
   Share2,
   Home,
   User,
+  Activity,
 } from "lucide-react"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
@@ -28,6 +29,7 @@ import { Loader2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useUser } from "@/context/UserContext";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import Image from "next/image"
 
 interface SystemNotification {
   id: string | number;
@@ -257,6 +259,11 @@ export default function PatientDashboard() {
       icon: <Calendar className="h-4 w-4" />,
     },
     {
+      title: "Health Tracking",
+      href: "/dashboard/patient/tracking",
+      icon: <Activity className="h-4 w-4" />,
+    },
+    {
       title: "Profile",
       href: "/dashboard/patient/profile",
       icon: <User className="h-4 w-4" />,
@@ -294,11 +301,37 @@ export default function PatientDashboard() {
       onMarkAllNotificationsRead={handleMarkAllNotificationsRead}
       onViewAllNotifications={handleViewAllNotifications}
     >
+      {/* Hero Banner Image */}
+      <div className="relative w-full h-48 mb-6 rounded-lg overflow-hidden">
+        <Image 
+          src="https://images.unsplash.com/photo-1586773860418-d37222d8fce3?auto=format&fit=crop&q=80&w=2200"
+          alt="Hospital environment"
+          fill
+          className="object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-sky-600/80 to-transparent flex items-center">
+          <div className="px-6 text-white">
+            <h1 className="text-2xl md:text-3xl font-bold">Welcome to CareFolio</h1>
+            <p className="mt-2 max-w-md">Your secure healthcare records management system</p>
+          </div>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <Card>
-          <CardHeader className="pb-2">
+        <Card className="overflow-hidden">
+          <div className="relative h-24">
+            <Image 
+              src="https://images.unsplash.com/photo-1504439468489-c8920d796a29?auto=format&fit=crop&q=80&w=1000"
+              alt="Profile background"
+              fill
+              className="object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent to-white"></div>
+          </div>
+          <CardHeader className="pb-2 relative">
             <CardTitle className="text-lg">Profile Completeness</CardTitle>
           </CardHeader>
+          {/* Rest of the card content remains the same */}
           <CardContent>
             {isLoadingProfile ? (
               <div className="flex justify-center py-4">
@@ -333,11 +366,22 @@ export default function PatientDashboard() {
           </CardFooter>
         </Card>
 
-        <Card>
-          <CardHeader className="pb-2">
+        <Card className="overflow-hidden">
+          <div className="relative h-24">
+            <Image 
+              src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&q=80&w=1000"
+              alt="Security background"
+              fill
+              className="object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent to-white"></div>
+          </div>
+          <CardHeader className="pb-2 relative">
             <CardTitle className="text-lg">Access Requests</CardTitle>
           </CardHeader>
+          {/* Rest of the card content remains the same */}
           <CardContent>
+            {/* Existing content */}
             {isLoadingRequests ? (
               <div className="flex justify-center py-4">
                 <Loader2 className="h-6 w-6 animate-spin text-sky-600" />
@@ -353,6 +397,7 @@ export default function PatientDashboard() {
                     {accessRequests.filter((r) => r.status === "pending").length}
                   </Badge>
                 </div>
+                {/* Other existing items */}
                 <div className="flex justify-between items-center">
                   <span className="text-green-600 flex items-center gap-1">
                     <CheckCircle className="h-4 w-4" />
@@ -381,11 +426,22 @@ export default function PatientDashboard() {
           </CardFooter>
         </Card>
 
-        <Card>
-          <CardHeader className="pb-2">
+        <Card className="overflow-hidden">
+          <div className="relative h-24">
+            <Image 
+              src="https://images.unsplash.com/photo-1631815587646-b84fb0385e33?auto=format&fit=crop&q=80&w=1000"
+              alt="Appointment background"
+              fill
+              className="object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent to-white"></div>
+          </div>
+          <CardHeader className="pb-2 relative">
             <CardTitle className="text-lg">Upcoming Appointments</CardTitle>
           </CardHeader>
+          {/* Rest of the card content remains the same */}
           <CardContent>
+            {/* Existing content */}
             {isLoadingAppointments ? (
               <div className="flex justify-center py-4">
                 <Loader2 className="h-6 w-6 animate-spin text-sky-600" />
@@ -423,6 +479,7 @@ export default function PatientDashboard() {
       </div>
 
       <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab} className="w-full">
+        {/* Existing tabs code */}
         <TabsList className="grid grid-cols-3 mb-6">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="records">Medical Records</TabsTrigger>
@@ -431,11 +488,21 @@ export default function PatientDashboard() {
 
         <TabsContent value="overview">
           <Card>
-            <CardHeader>
-              <CardTitle>Personal Information</CardTitle>
-              <CardDescription>Your information stored in the secure database</CardDescription>
-            </CardHeader>
-            <CardContent>
+            <div className="relative h-48 w-full">
+              <Image 
+                src="https://images.unsplash.com/photo-1581056771107-24ca5f033842?auto=format&fit=crop&q=80&w=2200"
+                alt="Medical professionals"
+                fill
+                className="object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-sky-600/80 to-transparent"></div>
+              <div className="absolute top-6 left-6 text-white">
+                <h2 className="text-2xl font-bold">Personal Information</h2>
+                <p className="text-sm opacity-90">Your information stored in the secure database</p>
+              </div>
+            </div>
+            <CardContent className="pt-6">
+              {/* Existing content */}
               {isLoadingProfile ? (
                 <div className="flex justify-center py-8">
                   <Loader2 className="h-8 w-8 animate-spin text-sky-600" />
@@ -448,6 +515,7 @@ export default function PatientDashboard() {
                         <h3 className="text-sm font-medium text-gray-600">Full Name</h3>
                         <p>{profile.name}</p>
                       </div>
+                      {/* Rest of the profile fields */}
                       <div>
                         <h3 className="text-sm font-medium text-gray-600">Aadhaar ID</h3>
                         <p>{profile.id || profile.aadhaarId}</p>
@@ -480,8 +548,6 @@ export default function PatientDashboard() {
                       </div>
                     </div>
                   </div>
-                  
-                  {/* Keep the rest of your Recent Activity section */}
                 </>
               ) : (
                 <div className="text-center py-8">
@@ -492,6 +558,7 @@ export default function PatientDashboard() {
           </Card>
         </TabsContent>
 
+        {/* Keep the other TabsContent sections as they are */}
         <TabsContent value="records">
           <Card>
             <CardHeader>
