@@ -1,6 +1,7 @@
 # CareFolio - Centralized Healthcare Records Management Platform
 
 ![CareFolio Banner](https://images.unsplash.com/photo-1586773860418-d37222d8fce3?auto=format&fit=crop&q=80&w=2200)
+![Screenshot 2025-04-20 211555](https://github.com/user-attachments/assets/842ef935-caaa-4bf5-8239-7acf68e5188e)
 
 ## 🩺 Project Overview
 
@@ -20,13 +21,27 @@
 ## 📱 Application Screenshots
 
 ### Patient Dashboard
-![Patient Dashboard](https://drive.google.com/file/d/163n3LOrRRwK9iLkSQqgT8gXje_xppLKM/view?usp=drive_link)
+![Patient Dashboard](https://github.com/user-attachments/assets/bd35e7fa-c365-4e35-9158-7acf6eef4377)
+![Screenshot 2025-05-20 174856](https://github.com/user-attachments/assets/af4d09f8-0b2b-414c-b82c-0fc8fbc5c9cb)
+![Screenshot 2025-05-20 174815](https://github.com/user-attachments/assets/5cedd002-d463-4bb8-9a44-46bb35194189)
+![Screenshot 2025-05-20 174758](https://github.com/user-attachments/assets/38f55654-ef6a-4060-91c7-c181ebccdbfd)
+
 
 ### Doctor Interface  
-![Doctor Interface](https://drive.google.com/file/d/1f98MpWh9ipa7RoNleDH-UbUnwSQ8vtWR/view?usp=drive_link)
+![Doctor Interface](https://github.com/user-attachments/assets/5a5257df-4703-493a-8fbf-96ef365bfdc1)
+![Screenshot 2025-05-20 174158](https://github.com/user-attachments/assets/8a12a939-d337-4aa8-8ae4-976eeeb85561)
+![Screenshot 2025-05-20 174219](https://github.com/user-attachments/assets/f7ed9288-ecca-4c6a-8ee1-127ba658b184)
+![Screenshot 2025-05-20 174236](https://github.com/user-attachments/assets/3004e52d-85d2-44eb-97bc-c0df4fec4b92)
 
 ### Government Analytics  
 ![Government Analytics](https://drive.google.com/file/d/10kM2NtGnyL3gkUgHJu5WgN2ODW9t1BU6/view?usp=drive_link)
+![Screenshot 2025-05-20 174320](https://github.com/user-attachments/assets/7789db7f-7f5b-4c7c-9bb1-324d4bb254ae)
+![Screenshot 2025-05-20 174337](https://github.com/user-attachments/assets/e26c4e0b-7897-4683-8d4a-53366e7e2e38)
+
+### Student/Researcher 
+![Screenshot 2025-05-20 174408](https://github.com/user-attachments/assets/2a770df4-e202-4787-a5af-cfc7cea11b26)
+![Screenshot 2025-05-20 174424](https://github.com/user-attachments/assets/a3bc5472-0c27-4b02-9e5c-18bf7ffbaa11)
+![Screenshot 2025-05-20 174439](https://github.com/user-attachments/assets/3ee72ba0-26e8-4965-9c97-6387543a618e)
 
 ---
 
