@@ -4,15 +4,15 @@ import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import { getAnalytics } from 'firebase/analytics';
 
-// Your web app's Firebase configuration
+// Your web app's Firebase configuration (sourced from environment variables)
 const firebaseConfig = {
-  apiKey: "AIzaSyAXZAlET8CIp0W7yR4CMZ2ULNeNZuNPTL4",
-  authDomain: "dti-project-7d7f4.firebaseapp.com",
-  projectId: "dti-project-7d7f4",
-  storageBucket: "dti-project-7d7f4.firebasestorage.app",
-  messagingSenderId: "574331881661",
-  appId: "1:574331881661:web:ce89dc48a2ddde5ea68fd4",
-  measurementId: "G-NEWJYZZDXG"
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
 };
 
 // Initialize Firebase only if it hasn't been initialized already
