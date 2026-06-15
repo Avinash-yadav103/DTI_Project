@@ -53,6 +53,7 @@
     "expo-file-system": "latest",
     "expo-gl": "latest",
     "file-saver": "^2.0.5",
+    "firebase": "^12.14.0",
     "framer-motion": "latest",
     "html2canvas": "^1.4.1",
     "immer": "latest",
